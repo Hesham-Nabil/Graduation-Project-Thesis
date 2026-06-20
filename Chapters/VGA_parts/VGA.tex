@@ -156,7 +156,7 @@ Table~\ref{tab:gain_codes} maps the control states to their corresponding mid-ba
     \label{tab:gain_codes}
     \begin{tabular}{@{}cc@{}}
         \toprule
-        \textbf{Degeneration Control Code ($b_3 \dots b_0$)} & \textbf{Simulated Gain (dB)} \\ 
+        \textbf{Control Code ($b_3 \dots b_0$)} & \textbf{Gain (dB)} \\ 
         \midrule
         0000 & 1.05 \\ 
         0001 & 2.54 \\ 
@@ -165,6 +165,21 @@ Table~\ref{tab:gain_codes} maps the control states to their corresponding mid-ba
         1111 & 7.05 \\ 
         \bottomrule
     \end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{VGA Nominal Performance Parameters}
+\label{tab:vga_key_params}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Nominal Value} \\
+\midrule
+3-dB Bandwidth ($BW$) & $> 16\,\text{GHz}$ \\
+Output Common-Mode Voltage ($V_{CM}$) & $540\,\text{mV}$ \\
+Total Current Consumption ($I_{DD}$) & $4.8\,\text{mA}$ \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \subsubsection*{VGA Linearity Analysis}
@@ -269,11 +284,12 @@ By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the 
     \label{tab:vga_corner_summary}
     \begin{tabular}{@{}ll@{}}
         \toprule
-        \textbf{Performance Metric} & \textbf{Observed Variation} \\
+        \textbf{Performance Metric} & \textbf{Variation} \\
         \midrule
         Common-Mode Voltage ($V_{CM}$) & $\sim \pm 20\,\text{mV}$ \\
-        DC Gain Delta & $< \pm 0.6\,\text{dB}$ \\
+        DC Gain  & $< \pm 0.6\,\text{dB}$ \\
         3-dB Bandwidth ($BW$) & $> 16\,\text{GHz}$ \\
+        Current Consumption  & $< 5.5\,\text{mA}$ \\
         Device Operating Region & All  transistors remain in saturation \\
         \bottomrule
     \end{tabular}
