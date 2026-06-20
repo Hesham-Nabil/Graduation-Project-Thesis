@@ -191,7 +191,7 @@ This topology offers two critical advantages for PCIe 6.0 \cite{kong2019}:
     \item \textbf{Linearization:} The resistive degeneration linearizes the effective transconductance ($G_{m,eff} \approx 1/R_S$), allowing the amplifier to handle large input swings with low distortion.
 \end{itemize}
 
-\subsubsection{Digital Implementation}
+\subsubsection*{Digital Implementation}
 To provide precise, digitally controlled gain steps, the variable degeneration resistance $R_S$ is implemented as a binary-weighted resistor bank. As shown in Figure \ref{fig:vga_digital}, the bank consists of parallel branches containing resistors ($R_S/2$) and NMOS switches controlled by digital bits ($b_0 \dots b_5$). By switching these resistors in and out, we can modulate the degeneration resistance in discrete steps. This digital control is inherently more robust to PVT variations than analog control voltages and interfaces seamlessly with the digital adaptation loops.
 
 \begin{figure}[H]
@@ -201,7 +201,7 @@ To provide precise, digitally controlled gain steps, the variable degeneration r
     \label{fig:vga_digital}
 \end{figure}
 
-\subsubsection{Hybrid Split-Termination}
+\subsubsection*{Hybrid Split-Termination}
 To further extend the dynamic range for very large input signals, a hybrid approach can be employed. The $50\Omega$ input termination is split into two $25\Omega$ segments, creating a passive attenuation path. This effectively provides a ``Dual-Mode'' operation: a Full Gain Path for weak signals and a Half Gain Path for strong signals. This hybrid combination of passive attenuation and active degeneration ensures the receiver can handle the full dynamic range of the PCIe channel without saturation.
 
 \begin{figure}[H]

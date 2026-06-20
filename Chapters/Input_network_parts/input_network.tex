@@ -99,7 +99,7 @@ in Figure~\ref{fig:model_schematic}.
 \subsection{Proposed Topology}
 % -------------------------------------------------------
 
-\subsubsection{Bridged-T Coil Bandwidth Extension}
+\subsubsection*{Bridged-T Coil Bandwidth Extension}
 
 A Bridged-T coil topology was selected to achieve the required broadband impedance match.
 Unlike a simple series-peaking inductor, the symmetric T-coil exploits mutual coupling
@@ -110,7 +110,7 @@ high-frequency feed-forward current path that maintains the real impedance close
 at the upper edge of the passband, where the inductors would otherwise present a high impedance.
 
 \newpage
-\subsubsection{Digitally Controlled Impedance (DCI)}
+\subsubsection*{Digitally Controlled Impedance (DCI)}
 
 Polysilicon resistors are subject to process and temperature (PT) variation of up to
 $\pm 20\%$, which would cause a static resistor termination to drift well outside the
@@ -326,7 +326,7 @@ The DCI control interface is driven by a Verilog-A behavioural decoder block
  
 \begin{figure}[H]
     \centering
-    \framebox{\includegraphics[width=0.95\textwidth]{img/Termination_VGA_img/testbench.pdf}}
+    \framebox{\includegraphics[width=0.95\textwidth]{img/Termination_VGA_img/testbenchinput.pdf}}
     \caption{Differential input network simulation testbench.}
     \label{fig:full_tb}
 \end{figure}
