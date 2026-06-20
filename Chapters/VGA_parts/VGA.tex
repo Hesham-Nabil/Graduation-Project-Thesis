@@ -26,7 +26,7 @@ Driving the large input capacitance ($C_L$) of the DFE introduces a dominant low
 
 The inductor introduces a high-frequency zero into the transfer function ($\omega_z = R_D / L_D$) that delays the capacitive roll-off. The network was designed with an inductive ratio of $m = R_D^2 C_L / L_D = 3.1$ to provide a bandwidth extension ratio (BWER) of $1.57\times$, hence extending the operating frequency range without requiring additional power dissipation.
 
-\subsubsection*{PVT Calibration Framework}
+\subsubsection*{PVT Calibration}
 In the Slow-Slow (SS) corner, passive resistance values increases by nearly 20\%. This deviation not only shifts the dominant pole to a lower frequency (degrading operating bandwidth) but also causes an excessive voltage drop across $R_D$. This shifts the output common-mode voltage ($V_{CM}$) downward and compromises the circuit's voltage headroom. 
 
 To mitigate these corner deviations, three distinct calibration networks are implemented to stabilize performance metrics:
@@ -167,7 +167,7 @@ Table~\ref{tab:gain_codes} maps the control states to their corresponding mid-ba
     \end{tabular}
 \end{table}
 
-\subsubsection*{VGA Linearity}
+\subsubsection*{VGA Linearity Analysis}
 To ensure the PAM4 signal integrity is not compromised by amplifier compression, the large-signal linearity of the VGA was evaluated at both the minimum (1~dB) and maximum (7~dB) gain steps. Figure~\ref{fig:vga_linearity} presents the voltage transfer characteristics (S-curves) and the corresponding Total Harmonic Distortion (THD) profiles, verifying adequate voltage headroom across both extreme operating configurations.
 
 \begin{figure}[H]
@@ -210,9 +210,9 @@ To ensure the PAM4 signal integrity is not compromised by amplifier compression,
 \end{figure}
 
 \subsubsection*{PVT Corner Analysis}
-A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of the calibration networks. A total of 16 extreme scenarios were simulated for each state, encompassing extreme process variations (Slow-Slow and Fast-Fast), supply voltage fluctuations ($\pm 5\%$ VDD), and extreme industrial temperature ranges ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
+A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of the calibration networks. A total of 12 corners were simulated for each state, encompassing process variations (Slow-Slow and Fast-Fast), supply voltage fluctuations ($\pm 5\%$ VDD), and extreme temperature variations ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
 
-By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the tail current via the 3-bit $I_{DAC}$, the VGA successfully maintained its target gain profile, bandwidth, and common-mode voltage across all severe PVT shifts without early capacitive roll-off or excessive peaking.
+By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the tail current via the 3-bit $I_{DAC}$, the VGA was able to maintain its target gain profile, bandwidth, and common-mode voltage across all severe PVT shifts.
 
 \begin{figure}[H]
     \centering
