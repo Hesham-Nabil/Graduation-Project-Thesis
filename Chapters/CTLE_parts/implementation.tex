@@ -1,4 +1,4 @@
-\section{PCIe 6.0 CTLE Specifications}
+\section*{PCIe 6.0 CTLE Specifications}
 \label{ch:specs}
 
 \section*{PCIe 6.0 Equalization Requirements}
@@ -97,7 +97,7 @@ Because PCIe 6.0 utilizes Pulse Amplitude Modulation 4-level (PAM4) signaling to
 \noindent Establishing this behavioral baseline proves that the architecture can mathematically satisfy the PCIe 6.0 standard under extreme loss conditions, allowing the design focus to shift toward realizing these exact poles, zeros, and gain steps using a physical, transistor-level analog front-end topology.
 
 
-\section{Topology Selection and Proposed Architecture}
+\subsection{Topology Selection and Proposed Architecture}
 
 \section*{Initial Approach: Single-Stage SD CTLE}
 
@@ -214,7 +214,7 @@ The input differential pair ($N_1, N_2$) is sized at $20\,\mu\text{m}/20\,\text{
 \subsubsection*{Multi-Path Branch (LPF + Gm cell)}
 The secondary low-pass branch ($N_3, N_4$) is sized at $2.4\,\mu\text{m}/20\,\text{n}\text{m}$ with a tail current source ($N_9$) sized at $10\,\mu\text{m}/100\,\text{n}\text{m}$. The branch filter is composed of a $500\,\Omega$ \texttt{opnpc} resistor and an \texttt{apmom} capacitor of $200\,\text{fF}$ ($9\,\mu\text{m} \times 9\,\mu\text{m}$), which sets the mid-band correction frequency. 
 
-\subsubsection{Tunability}
+\subsubsection*{Tunability}
 All DC gain and equalization peaking tunability is centralized in this stage via a programmable resistor bank and capacitive bank, allowing dynamic adjustment of the $R_S-C_S$ degeneration network.
 
 \subsection*{Stage 2: Fixed SD CTLE}
@@ -298,7 +298,7 @@ The network defaults to a base capacitance when \texttt{calib0} and \texttt{cali
 
 By dynamically adjusting $C_S$, the bank centers the CTLE peaking at the Nyquist frequency, decoupling the equalization magnitude from process-dependent $g_m$ variations.
 
-\section{Biasing Network}
+\subsection{Biasing Network}
 \label{sec:bias}
 
 The biasing network is responsible for generating the stable gate bias voltages ($V_{\mathrm{bs1}}$ and $V_{\mathrm{bs2}}$) required by the CTLE tail current sources. To ensure robust equalization performance across all PVT corners, the network utilizes a digitally controlled, custom-weighted current DAC (I-DAC) architecture that regulates the nominal $1.05\,\text{mA}$ reference current.
@@ -339,7 +339,7 @@ When a specific branch is disabled by its digital control signal ($V_{\text{ctrl
 The network employs five primary PMOS mirrors ($30\,\mu\text{m}/100\,\text{n}\text{m}$) and utilizes minimum-sized devices ($2.4\,\mu\text{m}/20\,\text{n}\text{m}$) for the 2-way control switches to minimize parasitic gate capacitance. To support the low-pass filter (LPF) branch's substantially lower current requirement of $70\,\mu\text{A}$, a secondary local NMOS mirror is implemented. This secondary mirror scales the primary $1.05\,\text{mA}$ reference down to the exact $70\,\mu\text{A}$ required. This hierarchical biasing strategy completely avoids the immense silicon area overhead that would otherwise be required by utilizing excessive high-ratio current multipliers, while effectively stabilizing the CTLE's $g_m$ and peaking frequency across all operating corners.
 
 \newpage
-\subsection{Testbench}
+\subsection*{Testbench}
 \label{sec:tb}
 
 To validate the two-stage CTLE, a testbench was developed to emulate the severe PCIe 6.0 channel insertion loss. The setup integrates the transistor-level design with bias circuitry, calibration banks, and a thermometer decoder, which generates the control signals for the resistive bank.
@@ -363,7 +363,7 @@ The environment performs the following analyses:
 
 
 
-\section{Simulation Results}
+\subsection{Simulation Results}
 \label{sec:sim_results}
 
 This section details the comprehensive pre-layout simulation results for the proposed two-stage Continuous-Time Linear Equalizer (CTLE). To thoroughly evaluate the design, all simulations were executed within the Cadence Spectre environment utilizing a 22\,nm SOI process technology design kit. Unless otherwise specified, the testing environment assumed a nominal supply voltage of 0.8\,V and an input common-mode voltage ($V_{\mathrm{ICM}}$) of 540\,mV. 
@@ -387,7 +387,7 @@ Figure~\ref{fig:ac_response_2_stages} illustrates the AC frequency response of t
     \item \textbf{High-Frequency (HF) Boost:} The total effective boost from DC to the Nyquist frequency is approximately 19\,dB.
 \end{itemize}
 
-\subsection*{AC Simulation Across All Gain Settings}
+\subsubsection{AC Simulation Across All Gain Settings}
 
 To verify the tunability of the mid-band and low-frequency attenuation, Figure~\ref{fig:ac_response_2_stages_all_settings} presents the cascaded CTLE frequency response across all eleven discrete gain settings. The DC gain is swept from its maximum value of -5\,dB down to its minimum value of -15\,dB, with the measured DC gain annotated directly on each corresponding curve.
 
@@ -418,7 +418,7 @@ To verify the tunability of the mid-band and low-frequency attenuation, Figure~\
     \end{tabular}
 \end{table}
 
-\subsection*{Input and Output Swing — Linearity Analysis}
+\subsubsection*{Input and Output Swing — Linearity Analysis}
 Maintaining signal linearity is critical to prevent the equalizer from introducing harmonic distortion into the data stream. Linearity was analyzed by sweeping the differential input amplitude and measuring the fundamental harmonic of the output signal.
 
 \subsubsection*{High Boost Setting (DC Gain = -15\,dB)}
@@ -470,7 +470,7 @@ The extracted linearity parameters at the minimum boost configuration are:
     \item \textbf{Output Swing:} The available linear output swing remains steady at approximately 210\,mV$_{\text{pp,diff}}$.
 \end{itemize}
 
-\subsection*{Noise Analysis}
+\subsubsection{Noise Analysis}
 
 Figure~\ref{fig:ctle_pnoise} details the simulated broad-spectrum output-referred noise spectral density of the CTLE. At lower frequencies, the noise profile is heavily dominated by flicker ($1/f$) noise. As the frequency increases beyond approximately $1\,\text{MHz}$, the profile transitions into a flat thermal noise floor. 
 
@@ -499,7 +499,7 @@ The key quantitative noise measurements are summarized below:
 \end{itemize}
 
 \newpage
-\subsection*{Transient Simulation — Single-Bit Response}
+\subsubsection{Transient Simulation — Single-Bit Response}
 To evaluate the time-domain equalization performance, a transient single-bit response (SBR) simulation was executed using a severe $-26$\,dB insertion loss channel model with the equalizer set to a DC gain of $-15$\,dB. The SBR is plotted in Figure~\ref{fig:ctle_sbr} as normalized amplitude against the tap index $k$, where one tap interval corresponds to the Nyquist period ($T_{\mathrm{Nyq}} = 32.5$\,ps). The equalized CTLE output (red) features a sharp main cursor at $k=0$ and rapidly decaying post-cursor ISI, contrasting with the broad, slowly decaying un-equalized channel response (gold).
 
 \begin{figure}[H]
@@ -511,7 +511,7 @@ To evaluate the time-domain equalization performance, a transient single-bit res
 
 \noindent The results demonstrate that the proposed CTLE significantly compresses the post-cursor ISI tail. While the raw channel impulse response retains substantial energy up to $k = 16$ taps, the equalized output decays to near-zero within just $k = 3$ to $4$ taps, heavily reducing the residual ISI burden on the subsequent Decision Feedback Equalizer (DFE) stage.
 
-\subsection*{Corner Simulation and PVT Robustness}
+\subsubsection{Corner Simulation and PVT Robustness}
 AC simulations were conducted across 13 PVT corners, spanning SS/FF process extremes, temperatures of $-40^{\circ}$C and $125^{\circ}$C, and supply voltage variations of $\pm5\%$. At each corner, the 7-bit calibration word (C0, C1, R1, R2, V1, V2, V3) — where C0 and C1 correspond to the capacitive bank control signals Calib0 and Calib1 respectively — is adjusted to maintain the target equalization profile, as documented in Table~\ref{tab:corner_codes}.
 
 \begin{table}[H]
@@ -563,12 +563,12 @@ The overlaid frequency responses across all corners are shown in Figure~\ref{fig
 %% =============================================================
 %% CHAPTER 7 – LAYOUT
 %% =============================================================
-\section*{Layout Implementation and Post-Layout Verification}
+\subsection{Layout Implementation and Post-Layout Verification}
 \label{sec:layout_pex}
 
 Transitioning from the schematic to the physical layout requires careful consideration of device matching, signal routing, and parasitic minimization. The layout was meticulously designed to preserve the strict symmetry of the differential signaling path, which is critical for maintaining high common-mode rejection and minimizing even-order harmonic distortion at high frequencies.
 
-\subsection*{Floorplan and Physical Layout}
+\subsubsection{Floorplan and Physical Layout}
 As illustrated in the conceptual diagram and the corresponding core layout in Figure~\ref{fig:layout_floorplan}, the components are arranged systematically to preserve differential symmetry. 
 
 \begin{figure}[H]
@@ -594,7 +594,7 @@ As illustrated in the conceptual diagram and the corresponding core layout in Fi
     \label{fig:full_layout_with_Rbank}
 \end{figure}
 
-\subsection*{Post-Layout Extraction (PEX) Simulation}
+\subsubsection{Post-Layout Extraction (PEX) Simulation}
 
 To validate the robustness of the physical design, Post-Layout Extraction (PEX) was performed to account for parasitic resistances and capacitances (RC) introduced by the metal routing, vias, and device proximities. Figure~\ref{fig:ctle_pex} compares the AC frequency response of the ideal pre-layout schematic against the fully extracted PEX netlist at the maximum boost setting (DC gain target of -15\,dB).
 
@@ -617,7 +617,7 @@ Overall, the PEX validation demonstrates that the layout is highly optimized. Th
 
 
 \newpage
-\section*{Design Summary}
+\subsection{Design Summary}
 \label{sec:summary}
 
 \subsection*{Specification vs. Achieved Performance}

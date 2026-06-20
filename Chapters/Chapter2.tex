@@ -10,7 +10,8 @@ This chapter establishes the theoretical foundation of high-speed links, coverin
 \section{Modulation Schemes (NRZ and PAM-4)}
 
 \subsection{Non-Return-to-Zero (NRZ)}
-For decades, Non-Return-to-Zero (NRZ) has been the modulation scheme of choice. In NRZ, binary data is mapped directly to two voltage levels, typically +V and -V. Mathematically, the channel response to an NRZ stream can be modeled as the superposition of the channel's response to isolated "1"s and "0"s.
+For decades, Non-Return-to-Zero (NRZ) has been the modulation scheme of choice. In NRZ, binary data is mapped directly to two voltage levels, 
+typically +V and -V. Mathematically, the channel response to an NRZ stream can be modeled as the superposition of the channel's response to isolated "1"s and "0"s.
 
 \begin{figure}[H]
     \centering
@@ -19,7 +20,8 @@ For decades, Non-Return-to-Zero (NRZ) has been the modulation scheme of choice. 
 \end{figure}
 
 \subsection{Pulse Amplitude Modulation (PAM-4)}
-To overcome the bandwidth limitation, Pulse Amplitude Modulation-4 (PAM-4) transmits two bits per symbol. This results in four distinct voltage levels, effectively increasing double bit rate at same Nyquist frequency.
+To overcome the bandwidth limitation, Pulse Amplitude Modulation-4 (PAM-4) transmits two bits per symbol. This results in four distinct voltage levels, 
+effectively increasing double bit rate at same Nyquist frequency.
 
 \begin{figure}[H]
     \centering
@@ -28,7 +30,8 @@ To overcome the bandwidth limitation, Pulse Amplitude Modulation-4 (PAM-4) trans
 \end{figure}
 
 \subsubsection*{Gray Coding}
-PAM-4 typically employs Gray coding rather than linear coding. In linear coding, a transition between adjacent levels (e.g., Level 1 to Level 2) might involve multiple bit changes (e.g., 01 to 10). In Gray coding, adjacent levels differ by only one bit (e.g., 01 to 11).
+PAM-4 typically employs Gray coding rather than linear coding. In linear coding, a transition between adjacent levels (e.g., Level 1 to Level 2) 
+might involve multiple bit changes (e.g., 01 to 10). In Gray coding, adjacent levels differ by only one bit (e.g., 01 to 11).
 
 \begin{figure}[H]
     \centering
@@ -38,10 +41,10 @@ PAM-4 typically employs Gray coding rather than linear coding. In linear coding,
 
 Statistically, the Bit Error Rate (BER) is approximately 33\% higher for linear coding compared to Gray coding.
 
-\subsection{Comparative Analysis}
+\subsection*{Comparative Analysis}
 The transition from NRZ to PAM-4 is not without penalty. It involves a fundamental trade-off between Bandwidth (BW) and Signal-to-Noise Ratio (SNR).
 
-\subsubsection{Bandwidth Reduction}
+\subsubsection*{Bandwidth Reduction}
 The primary advantage of PAM-4 is the reduction in symbol rate. For a target bit rate Rb, the symbol rate Rs is:
 
 \begin{figure}[H]
@@ -60,8 +63,10 @@ The primary advantage of PAM-4 is the reduction in symbol rate. For a target bit
 
 This allows the system to operate at a frequency where channel loss is significantly lower.
 
-\subsubsection{SNR and Eye Height Penalty}
-Because PAM-4 must fit four levels into the same voltage swing limits as NRZ, the vertical eye opening is drastically reduced. The spacing between levels in PAM-4 is 1/3 that of NRZ.
+\newpage
+\subsubsection*{SNR and Eye Height Penalty}
+Because PAM-4 must fit four levels into the same voltage swing limits as NRZ, the vertical eye opening is drastically reduced. 
+The spacing between levels in PAM-4 is 1/3 that of NRZ.
 
 \begin{figure}[H]
     \centering
@@ -94,14 +99,15 @@ To maintain the same transmit power, the PAM-4 amplitude must be boosted, or NRZ
 
 The effective SNR loss, accounting for practical non-linearities, is typically greater than 11 dB.
 
-\subsubsection{Decision Criteria}
-The choice of modulation depends on the slope of the channel insertion loss. PAM-4 is advantageous only if the reduction in channel loss at the lower Nyquist frequency outweighs the inherent SNR penalty.
+\subsubsection*{Decision Criteria}
+The choice of modulation depends on the slope of the channel insertion loss. PAM-4 is advantageous only if the reduction in channel loss at the lower 
+Nyquist frequency outweighs the inherent SNR penalty.
 
 \begin{equation}
     Loss(f_{Nyquist–NRZ}) - Loss(f_{Nyquist - PAM4}) > 11\ dB \tag{2.7}
 \end{equation}
 
-\subsection{PAM4 Linearity Considerations}
+\subsection*{PAM4 Linearity Considerations}
 PAM4 eye linearity is critical for low BER.
 
 \textbf{Eye compression}
@@ -136,26 +142,33 @@ PAM4 eye linearity is critical for low BER.
 % SECTION 2: INPUT NETWORK
 % ==================================================================
 \section{Input Network: Termination Fundamentals}
-The input network is the critical interface between the harsh environment of the transmission channel and the sensitive silicon die. Its primary responsibilities are twofold: providing precise impedance matching to minimize signal reflections and extending the receiver's bandwidth beyond the intrinsic limits of the ESD pads.
+The input network is the critical interface between the harsh environment of the transmission channel and the sensitive silicon die. 
+Its primary responsibilities are twofold: providing precise impedance matching to minimize signal reflections and extending the receiver's bandwidth beyond the intrinsic limits of the ESD pads.
 
 \subsection{Transmission Line Behavior}
-In modern high-speed serial links like PCIe 6.0, the signal transition times ($t_{rise}$) are significantly shorter than the time of flight ($t_{flight}$) across the channel, as given by \eqref{transmission_line_condition}.
+In modern high-speed serial links like PCIe 6.0, the signal transition times ($t_{rise}$) are significantly shorter than the time of 
+flight ($t_{flight}$) across the channel, as given by \eqref{transmission_line_condition}.
 \begin{equation} \label{eq:transmission_line_condition}
     t_{rise} \ll t_{flight}
 \end{equation}
-Under this condition, the PCB trace ceases to behave as a simple wire and must be modeled as a transmission line with a characteristic impedance $Z_0$ (typically $50\Omega$ single-ended or $85-100\Omega$ differential).
+Under this condition, the PCB trace ceases to behave as a simple wire and must be modeled as a transmission line with a characteristic 
+impedance $Z_0$ (typically $50\Omega$ single-ended or $85-100\Omega$ differential).
 
-\subsection{Reflections}
-When the traveling wave encounters an impedance discontinuity (where $Z_{load} \neq Z_0$), energy cannot be fully absorbed. Conservation of energy dictates that a portion of the signal must be reflected back to the source. The magnitude of this reflection is governed by the reflection coefficient, $\Gamma$:
+\subsection*{Reflections}
+When the traveling wave encounters an impedance discontinuity (where $Z_{load} \neq Z_0$), energy cannot be fully absorbed. 
+Conservation of energy dictates that a portion of the signal must be reflected back to the source. The magnitude of this reflection is governed by the reflection coefficient, $\Gamma$:
 
 \begin{equation} \label{eq:reflection_coefficient}
     \Gamma = \frac{Z_L - Z_0}{Z_L + Z_0}
 \end{equation}
 
-These reflections are destructive. They travel back and forth along the line, superimposing on incoming data bits. This phenomenon is known as Inter-Symbol Interference (ISI).
+These reflections are destructive. They travel back and forth along the line, superimposing on incoming data bits. 
+This phenomenon is known as Inter-Symbol Interference (ISI).
 
 \subsection{Transient Reflection Patterns}
-To demonstrate the necessity of termination, we analyzed the transient response of a transmission line where the receiver is effectively an open circuit ($Z_L = \infty$, $\Gamma_L = +1$). In this state, all incident energy is reflected back to the source. The resulting voltage waveform at the receiver depends entirely on the source impedance $Z_S$.
+To demonstrate the necessity of termination, we analyzed the transient response of a transmission line where the receiver is 
+effectively an open circuit ($Z_L = \infty$, $\Gamma_L = +1$). In this state, all incident energy is reflected back to the source. 
+The resulting voltage waveform at the receiver depends entirely on the source impedance $Z_S$.
 
 We examine two distinct cases based on the source reflection coefficient:
 \begin{equation}
@@ -166,8 +179,10 @@ We examine two distinct cases based on the source reflection coefficient:
 In this scenario, the source impedance is significantly higher than the characteristic impedance (e.g., $Z_S = 5Z_0$).
 \begin{itemize}
     \item \textbf{Physics:} Since $Z_S > Z_0$, the source reflection coefficient is positive ($\Gamma_S > 0$).
-    \item \textbf{Mechanism:} The initial voltage launched into the line is small due to the voltage divider action. When the reflection returns from the open load, it reflects off the source with the same polarity.
-    \item \textbf{Result:} The voltage at the receiver builds up monotonically in discrete steps (Staircase) as the wave bounces back and forth, eventually settling at $V_{source}$. This slow buildup closes the eye diagram for high-speed data.
+    \item \textbf{Mechanism:} The initial voltage launched into the line is small due to the voltage divider action. 
+    When the reflection returns from the open load, it reflects off the source with the same polarity.
+    \item \textbf{Result:} The voltage at the receiver builds up monotonically in discrete steps (Staircase) as the wave bounces back and forth, 
+    eventually settling at $V_{source}$. This slow buildup closes the eye diagram for high-speed data.
 \end{itemize}
 
 \begin{figure}[H]
@@ -181,8 +196,10 @@ In this scenario, the source impedance is significantly higher than the characte
 In this scenario, the source impedance is significantly lower than the characteristic impedance (e.g., $Z_S = 0.2Z_0$).
 \begin{itemize}
     \item \textbf{Physics:} Since $Z_S < Z_0$, the source reflection coefficient is negative ($\Gamma_S < 0$).
-    \item \textbf{Mechanism:} The driver launches a strong initial wave. When the reflection returns from the open load, it doubles at the Rx side (Overshoot). However, when this reflection hits the low-impedance source, it reflects back inverted (negative polarity).
-    \item \textbf{Result:} The voltage oscillates around the final value, creating severe \textbf{ringing}. This overshoot can exceed the breakdown voltage of the Rx transistors, while the subsequent undershoot can cause logic errors.
+    \item \textbf{Mechanism:} The driver launches a strong initial wave. When the reflection returns from the open load, it doubles at the Rx side (Overshoot). 
+    However, when this reflection hits the low-impedance source, it reflects back inverted (negative polarity).
+    \item \textbf{Result:} The voltage oscillates around the final value, creating severe \textbf{ringing}. 
+    This overshoot can exceed the breakdown voltage of the Rx transistors, while the subsequent undershoot can cause logic errors.
 \end{itemize}
 
 \begin{figure}[H]
@@ -192,16 +209,19 @@ In this scenario, the source impedance is significantly lower than the character
     \label{fig:reflection_ringing}
 \end{figure}
 
-Following the input termination, the signal enters the core Analog Front-End. This chapter details the Variable Gain Amplifier (VGA) used for amplitude control and the Continuous Time Linear Equalizer (CTLE) used for high-frequency boosting.
+Following the input termination, the signal enters the core Analog Front-End. This chapter details the Variable Gain Amplifier (VGA) used for amplitude control and
+ the Continuous Time Linear Equalizer (CTLE) used for high-frequency boosting.
 
 % ==================================================================
 % SECTION 3: VGA
 % ==================================================================
 \section{Variable Gain Amplifier (VGA)}
 
-The Variable Gain Amplifier (VGA) serves as the adaptive core of the receiver analog front-end, tasked with maximizing the overall system dynamic range. In high-speed serial links, the signal amplitude arriving at the receiver pad is highly unpredictable. Long PCB traces can cause significant attenuation, requiring amplification to prevent Bit Error Rate (BER) degradation, while short channels result in strong signals that must be attenuated to prevent receiver saturation.
+The Variable Gain Amplifier (VGA) serves as the adaptive core of the receiver analog front-end, tasked with maximizing the overall system dynamic range.
+ In high-speed serial links, the signal amplitude arriving at the receiver pad is highly unpredictable. Long PCB traces can cause significant attenuation, requiring amplification to prevent Bit Error Rate (BER) degradation, while short channels result in strong signals that must be attenuated to prevent receiver saturation.
 
-For PAM4 signaling, linearity is critical. Unlike NRZ, which only detects a zero-crossing, PAM4 requires preserving the amplitude ratios between the four levels (0, 1/3, 2/3, 1). Non-linearity compresses the outer eyes, destroying the Signal-to-Noise Ratio (SNR). Therefore, a Variable Gain Amplifier (VGA) is required to normalize the signal amplitude while maintaining strict linearity. Hence to ensure robust operation for PCIe 6.0, the VGA must meet stringent performance constraints:
+For PAM4 signaling, linearity is critical. Unlike NRZ, which only detects a zero-crossing, 
+PAM4 requires preserving the amplitude ratios between the four levels (0, 1/3, 2/3, 1). Non-linearity compresses the outer eyes, destroying the Signal-to-Noise Ratio (SNR). Therefore, a Variable Gain Amplifier (VGA) is required to normalize the signal amplitude while maintaining strict linearity. Hence to ensure robust operation for PCIe 6.0, the VGA must meet stringent performance constraints:
 \begin{enumerate}
     \item \textbf{High Linearity:} It must support multi-level PAM4 signaling without compressing the outer eye margins.
     \item \textbf{Constant Bandwidth:} It must maintain a flat frequency response across the entire gain range to prevent data-dependent ISI.
@@ -222,17 +242,22 @@ Figure \ref{fig:vga_performance} contrasts a poor VGA design—exhibiting bandwi
 % ==================================================================
 \section{Continuous-Time Linear Equalizer (CTLE)}
 
-To mitigate channel-induced distortion, equalization techniques are employed either at the transmitter, the receiver, or both. From a receiver perspective, analog equalization offers a power-efficient and low-latency solution, particularly suitable for moderate-to-high data rates.
+To mitigate channel-induced distortion, equalization techniques are employed either at the transmitter, the receiver, or both.
+ From a receiver perspective, analog equalization offers a power-efficient and low-latency solution, particularly suitable for moderate-to-high data rates.
 
-The Continuous-Time Linear Equalizer (CTLE) is widely used as an analog front-end block in the receiver. Its primary objective is to compensate for channel loss by reshaping the frequency response of the received signal before sampling and decision making.
+The Continuous-Time Linear Equalizer (CTLE) is widely used as an analog front-end block in the receiver.
+ Its primary objective is to compensate for channel loss by reshaping the frequency response of the received signal before sampling and decision making.
 
-Unlike decision-feedback equalizers (DFEs), CTLEs operate in continuous time and do not rely on clocked feedback paths. This makes them inherently stable at high data rates and attractive for applications where power consumption, complexity, and latency must be minimized.
+Unlike decision-feedback equalizers (DFEs), CTLEs operate in continuous time and do not rely on clocked feedback paths.
+ This makes them inherently stable at high data rates and attractive for applications where power consumption, complexity, and latency must be minimized.
 
 \subsection{Concept of Operation of the CTLE}
 
-The fundamental idea behind a CTLE is to approximate the inverse frequency response of the channel over the frequency range of interest. Since the channel attenuates high-frequency components more severely than low-frequency components, the CTLE is designed to introduce a complementary response.
+The fundamental idea behind a CTLE is to approximate the inverse frequency response of the channel over the frequency range of interest.
+ Since the channel attenuates high-frequency components more severely than low-frequency components, the CTLE is designed to introduce a complementary response.
 
-In general, a CTLE operates by \textbf{Reducing low-frequency gain} and/or \textbf{Boosting high-frequency gain}. This creates a \emph{frequency peaking} behavior, where the gain increases with frequency up to a certain point, typically near the Nyquist frequency. As a result, the overall response of the channel combined with the CTLE becomes flatter, improving signal integrity.
+In general, a CTLE operates by \textbf{Reducing low-frequency gain} and/or \textbf{Boosting high-frequency gain}. This creates a \emph{frequency peaking} behavior,
+ where the gain increases with frequency up to a certain point, typically near the Nyquist frequency. As a result, the overall response of the channel combined with the CTLE becomes flatter, improving signal integrity.
 
 \begin{figure}[H]
     \centering
@@ -265,7 +290,8 @@ over the band of interest.
 
 \subsection{Frequency-Domain Interpretation}
 
-From a frequency-domain perspective, most practical channels exhibit a magnitude response that decreases approximately linearly (in dB) with frequency. A CTLE introduces zeros and poles in such a way that the gain increases with frequency, partially or fully compensating for this roll-off.
+From a frequency-domain perspective, most practical channels exhibit a magnitude response that decreases approximately linearly (in dB) with frequency.
+ A CTLE introduces zeros and poles in such a way that the gain increases with frequency, partially or fully compensating for this roll-off.
 
 Key parameters that characterize a CTLE frequency response include:
 \begin{itemize}
@@ -287,7 +313,8 @@ Although CTLE design is often discussed in the frequency domain, its ultimate im
     \caption{Effect of CTLE on eye diagram}
     \label{fig:CTLE eye}
 \end{figure}
-CTLEs primarily address precursor ISI by reshaping the channel's impulse response to reduce energy spreading into adjacent symbol intervals. However, excessive equalization can convert precursors into postcursors or vice versa, requiring careful design balance.
+CTLEs primarily address precursor ISI by reshaping the channel's impulse response to reduce energy spreading into adjacent symbol intervals. However,
+ excessive equalization can convert precursors into postcursors or vice versa, requiring careful design balance.
 
 \begin{figure}[H]
     \centering
@@ -315,7 +342,8 @@ The figure illustrates inter-symbol interference (ISI) in the time domain, showi
     \item \textbf{Postcursors (t$>$0)}: Interference from past symbols (non-causal)
 \end{itemize}
 
- Excessive high-frequency boosting can introduce ringing and noise amplification. Therefore, CTLE design requires careful trade-offs between equalization strength, stability, and noise performance.
+ Excessive high-frequency boosting can introduce ringing and noise amplification. Therefore, CTLE design requires careful trade-offs between equalization strength,
+  stability, and noise performance.
 
 \subsection{Design Trade-offs}
 
@@ -342,9 +370,11 @@ Despite these trade-offs, CTLEs remain essential in high-speed receivers due to 
 \section{Decision Feedback Equalization (DFE)}
 
 \subsection{Operational Principle}
-The purpose of equalization in general is simply to remove or reduce the noise or distortion happened to the signal to be well known to the receiver. So, it is required to reduce ISI (inter symbol interference) caused by the channel impulse response that distorts the signal.
+The purpose of equalization in general is simply to remove or reduce the noise or distortion happened to the signal to be well known to the receiver.
+ So, it is required to reduce ISI (inter symbol interference) caused by the channel impulse response that distorts the signal.
 
-The Decision Feedback Equalizer (DFE) is a non-linear equalizer that reconstructs the received signal by subtracting the interference caused by previously detected bits. Ideally, if the sequence of past bits is known correctly, their ISI contribution can be perfectly removed.
+The Decision Feedback Equalizer (DFE) is a non-linear equalizer that reconstructs the received signal by subtracting the interference caused by previously detected bits.
+ Ideally, if the sequence of past bits is known correctly, their ISI contribution can be perfectly removed.
 
 \begin{figure}[H]
     \centering
@@ -360,15 +390,21 @@ The Decision Feedback Equalizer (DFE) is a non-linear equalizer that reconstruct
 \end{figure}
 
 
-\subsubsection{Advantages and Disadvantages}
+\subsubsection*{Advantages and Disadvantages}
 Advantages:
-DFE is highly effective because it restores high-frequency signals without amplifying noise or crosstalk. By using clean digital decisions to subtract interference, it ensures a higher quality signal than linear equalizers. Additionally, DFE allows for adaptive tuning directly at the receiver, eliminating the need for a complex back-channel to the transmitter.
+DFE is highly effective because it restores high-frequency signals without amplifying noise or crosstalk. By using clean digital decisions to subtract interference,
+ it ensures a higher quality signal than linear equalizers. Additionally, DFE allows for adaptive tuning directly at the receiver,
+  eliminating the need for a complex back-channel to the transmitter.
 
 Disadvantages:
-DFE cannot cancel pre-cursor ISI because it relies entirely on past bit decisions. It also introduces the risk of error propagation, where one incorrect decision causes a chain reaction of errors, though this is rare in healthy links. Finally, DFE requires strict feedback timing constraints and typically consumes more power than simpler analog equalizers like the CTLE.
+DFE cannot cancel pre-cursor ISI because it relies entirely on past bit decisions. It also introduces the risk of error propagation,
+ where one incorrect decision causes a chain reaction of errors, though this is rare in healthy links. Finally,
+  DFE requires strict feedback timing constraints and typically consumes more power than simpler analog equalizers like the CTLE.
 
 \subsection{Critical Timing Constraints}
-The implementation of DFE in multi-gigabit links is strictly limited by the feedback loop delay. The most critical path is the first tap (h1) loop. Once a decision is made by the comparator, it must be multiplied by the tap weight h1 and subtracted from the input signal before the next sampling edge.
+The implementation of DFE in multi-gigabit links is strictly limited by the feedback loop delay. The most critical path is the first tap (h1) loop.
+ Once a decision is made by the comparator, 
+it must be multiplied by the tap weight h1 and subtracted from the input signal before the next sampling edge.
 
 \begin{equation}
     T_{regen} + T_{h1} + T_{sum} + T_{setup} < T_{clk} \tag{3.1}

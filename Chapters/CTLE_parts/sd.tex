@@ -15,7 +15,7 @@ Figure~\ref{fig:sd_ctle_arch} illustrates the conventional SD-CTLE topology, whi
 
 The differential pair transistors $M_1$ and $M_2$ convert the input voltage $V_{in}$ to a current, while the degeneration network modulates their effective transconductance as a function of frequency. The bias current $I_{bias}$ sets the operating point and transconductance $g_m$ of the input pair. The key innovation of this topology is the placement of $C_s$ in parallel with $R_s$: at low frequencies, $C_s$ is effectively open-circuited, making the degeneration impedance primarily resistive ($R_s$); at high frequencies, $C_s$ shorts out $R_s$, reducing degeneration and thereby boosting the gain. This frequency-selective feedback forms the basis of the CTLE's equalization capability.
 
-\subsubsection{Small-Signal Transfer Function}
+\subsubsection*{Small-Signal Transfer Function}
 
 The small-signal transfer function of the source-degenerated CTLE is derived using the differential half-circuit model. Each side of the differential pair contributes a transconductance of $g_{m1,2}$, while the source degeneration resistor $R_s$ is shared between the two transistors. As a result, the effective degeneration seen in the half-circuit is $R_s/2$.
 
@@ -66,7 +66,7 @@ The gain boost, defined as $\frac{A_{\text{peak,ideal}}}{A_{DC}}$, becomes:
 
 As shown in Figure~\ref{fig:sd_ctle_response}, $\omega_z$ and $\omega_{p1}$ create the peaking needed for high-frequency compensation, while $\omega_{p2}$ limits bandwidth. The $\omega_{p1}/\omega_z$ ratio, controlled by $g_mR_s$, determines equalization strength.
 
-\subsubsection{Design Knobs and Tunability}
+\subsubsection*{Design Knobs and Tunability}
 \label{sec:design_knobs}
 
 The SD-CTLE offers four tuning parameters—$R_L$, $R_s$, $C_s$, and $I_{bias}$—for electronic optimization across channel conditions.
@@ -189,7 +189,7 @@ Increasing $I_{bias}$ produces these effects:
 \end{itemize}
 
 
-\subsubsection{Design Trade-offs for the SD CTLE}
+\subsubsection*{Design Trade-offs for the SD CTLE}
 \label{subsec:design_tradeoffs}
 
 The interplay between the four primary design knobs creates a multi-dimensional optimization space. Table~\ref{tab:design_knobs_summary} summarizes their effects and typical design considerations.

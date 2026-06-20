@@ -53,7 +53,7 @@ For $R_{NC} < 0$, if $|Z_{NC}| > R_L$, the denominator $R_L + Z_{NC}$ becomes ne
 
 The negative capacitance $C_{NC} = -C_C$ effectively cancels part of the parasitic capacitance at the output node, extending the bandwidth. The combined effect of increased effective resistance and reduced capacitance enables the NC-CTLE to achieve higher gain-bandwidth product compared to conventional SD-CTLE.
 
-\subsubsection{Enhanced Frequency Response Analysis}
+\subsubsection*{Enhanced Frequency Response Analysis}
 
 \begin{figure}[H]
     \centering
@@ -92,7 +92,7 @@ A key design strategy in NC-CTLE is to compensate the first pole $\omega_{p1}$ w
 
 The negative capacitance modifies the relationship between $\omega_{p1}$ and $\omega_{p1,NC}$, where $\omega_{p1,NC} < \omega_{p1}$, while $\omega_n > \omega_{p2}$. This modified pole arrangement, shown in Figure~\ref{fig:nc_asymptotic}, creates a wider peaking region and higher maximum gain compared to conventional SD-CTLE. The actual implementation in 180nm technology (Figure~\ref{fig:nc_real_response}) demonstrates NC-CTLE achieving 10.39 dB peaking at 2.2 GHz versus SD-CTLE's 8 dB at 2.51 GHz, representing a 30\% improvement in equalization capability.
 
-\subsubsection{Design Knobs and Tunability}
+\subsubsection*{Design Knobs and Tunability}
 
 The NC-CTLE inherits all tuning parameters from the SD-CTLE—$R_L$, $R_s$, $C_s$, and $I_{bias}$ described in Section~\ref{sec:design_knobs}, while introducing the additional critical parameter $I_{NC}$ that controls the negative capacitance strength through $g_{m5,6}$.
 
@@ -208,7 +208,7 @@ The enhanced peaking of NC-CTLE improves eye diagrams for severely lossy channel
     \item \textbf{Practical Implementation}: NC-CTLE offers higher peaking gain than SD-CTLE but at the cost of reduced peaking frequency and increased sensitivity to $I_{\text{NC}}$ tuning.
 \end{itemize}
 
-\subsubsection{Design Trade-offs and Guidelines}
+\subsubsection*{Design Trade-offs and Guidelines}
 
 \begin{table}[H]
 \centering

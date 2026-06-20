@@ -1,6 +1,6 @@
-\section{Characteristics for Comparators}
+\subsection{Characteristics for Comparators}
 
-\subsection{Input referred noise}
+\subsubsection{Input referred noise}
 The goal is to find the sigma of a supposed normal distribution (Transient Noise simulations). If inputs are at the same potential there is equal probability of having "0s" (n0) and "1s" (n1). Differential input slightly skewed to have different n0 and n1. In this example: n1>n0
 
 \begin{equation}
@@ -15,7 +15,7 @@ When $Vs = \sigma$, then $n_0 = \frac{1 - 0.683}{2} = 0.1585$, $n_1 = 0.8415$. M
     \caption{The behavior of noisy comparator with a (a) zero and (b) finite input differences}
 \end{figure}
 
-\subsection{ISF (Impulse Sensitivity Function)}
+\subsubsection{ISF (Impulse Sensitivity Function)}
 
 Ideally, sampling is represented by a delta function $\delta$(t), where the value depends solely on the exact sampling time. In reality, however, a switch is modeled as a device that calculates a weighted average of the input signal over a finite duration, effectively treating the sampling function as a weighting function.
 
@@ -93,7 +93,7 @@ To characterize the ISF for a clocked comparator in simulation, one of the most 
     \caption{Characterizing the comparator ISF in simulation \cite{johansson1998}}
 \end{figure}
 
-\section{Metastability}
+\subsection{Metastability}
 For very small input voltages, the comparator cannot reach a decision in the limited time of a half clock period (Ts). The comparator will not generate a clear "zero" or "one" output level after time Ts (Metastability). The succeeding logical circuitry will behave ambiguously
 
 Therefore, there is a spec on minimum input voltage for certain delay.

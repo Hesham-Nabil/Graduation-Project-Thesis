@@ -1,52 +1,59 @@
-%% Title page: Manually formatted according to the university requirements.
+%% Title page: Formatted professionally according to university layout standards
 \thispagestyle{empty} % No headers or page numbers
 
 \begin{center}
-\begin{figure}
-  \begin{center}
-    % Ensure the file 'asu_logo.png' exists in your folder
-    \includegraphics[height=4cm]{Logo/asu_logo}
-  \end{center}
-\end{figure}
 
-\small
-\textbf{AIN SHAMS UNIVERSITY\\
-    FACULTY OF ENGINEERING\\
-    Electronics and Electrical Communication Engineering Department}
+    %% 1. INSTITUTION HEADER & LOGO
+    {\linespread{1.15}\small\scshape
+    Ain Shams University\\
+    Faculty of Engineering\\
+    Electronics and Electrical Communication Engineering Department\par}
+    
+    \vspace{0.8cm}
+    \includegraphics[height=3.5cm]{Logo/asu_logo}
+    
+    \vspace{1.5cm}
+    
+    %% 2. PROJECT TITLE (Clean, No-Bar Layout)
+    {\setstretch{1.3}
+    \Large\bfseries Design and Implementation of a High-Speed\\ 
+    PCIe Gen6 SerDes Transceiver PHY\par}
+    
+    \vspace{0.6cm}
+    {\large\scshape Graduation Project Thesis --- 2026}
+    
+    \vspace{1.5cm}
+    
+    %% 3. DEGREE REQUIREMENT STATEMENT
+    {\small\itshape
+    A Thesis submitted in partial fulfillment of the requirements for the\\ 
+    Degree of Bachelor of Science in Electronics and Electrical Communications Engineering\par}
 
-\vfill
-\Large
-\textbf{Design for a PCIe SERDES PHY}\\
-%\large
-%Graduation Project 2026
+    \vfill
 
-\vfill
-\small
-A Thesis submitted in partial fulfillment of the requirements for the \\ 
-Degree of Bachelor of Science in Electrical Engineering \\
-(Electronics and Electrical Communications)
+    %% 4. AUTHORS SECTION (Symmetric Left-Aligned 'll' Layout)
+    {\small\scshape Prepared by:}\\[0.3cm]
+    {\large\bfseries
+    \begin{tabular}{ll}
+        Hesham Nabil Hosny  & \hspace{1.5cm} Sherif Alaa El-Din \\ [0.15cm]
+        Paula Ashraf Raouf  & \hspace{1.5cm} Youssef Fayez Edwar \\ [0.15cm]
+        Amr Khaled Gamal     & \hspace{1.5cm} Ziad Hossam Mohammed
+    \end{tabular}\par}
 
-\vfill
-\small
-by\\
-\large
-% Add your names and IDs here
-\textbf{Amr Khaled Gamal}\\
-\textbf{Hesham Nabil Hosny}\\
-\textbf{Paula Ashraf Raouf}\\
+    \vfill
 
+    %% 5. SUPERVISORS SECTION
+    {\small\scshape Supervised by:}\\[0.3cm]
+    {\normalsize\bfseries
+    Dr. Hesham Omran\\[0.15cm]
+    Eng. Mostafa Fouad\\[0.15cm]
+    Eng. Mahmoud Deghadi\par}
 
-\vfill
-\small
-Supervised By\\
-\normalsize
-% Replace with your actual supervisors
-%\textbf{Prof. Supervisor Name 1}\\
-\textbf{Dr. Hesham Omran}\\
-\textbf{Eng. Mahmoud Deghadi}
+    \vfill
+    \vspace{0.8cm}
 
-\vfill
-\small
-Cairo, 2026\\
+    %% 6. FOOTER
+    {\small\scshape Cairo, Egypt \\ June 2026}
 
 \end{center}
+\clearpage

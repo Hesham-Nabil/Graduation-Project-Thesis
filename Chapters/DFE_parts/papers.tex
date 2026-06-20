@@ -1,6 +1,6 @@
 \section{Survey of Recent DFE Implementations}
 
-\subsection{56-Gb/s PAM-4 DFE (Ken Chang et al., JSSC 2017)}
+\subsection*{56-Gb/s PAM-4 DFE (Ken Chang et al., JSSC 2017)}
 As shown in Figure 7.1 this implementation utilizes a Half-Rate architecture in 16nm FinFET. PAM-4 signaling at 56-Gb/s targeting 10-dB channel losses at the Nyquist frequency (14 GHz) using 16nm FinFET. Half rate is used. No loop Unrolling as it needs many slicers. Data for h1-h4 taps use thermometer encoding to minimize the latency. Data for h5-h10 taps use T2B to reduce number of latches and clock loading, reducing power consumption. Input for h1 tap is taken directly after the master latch not after SR Latch to minimize latency.
 
 \begin{figure}[htbp] % [htbp] allows LaTeX to place the float here, top, bottom, or separate page
@@ -71,7 +71,7 @@ Using Strong-Arm (SA) followed by inverter amplifier. When CLK=0, both outputs o
 \end{table}
 
 \newpage
-\subsection{Energy Efficient Integrated Summer and Latch-Based DFE (ISL) With Reduced Tap Loading (Nijwm Wary et al., JSSC 2024)}
+\subsection*{Energy Efficient Integrated Summer and Latch-Based DFE (ISL) With Reduced Tap Loading (Nijwm Wary et al., JSSC 2024)}
 As shown in Figure \ref{halfrate_proposed} this work proposes merging the summer and the latch into a single cell to make the summer node works in parallel with Latch to relax the timing constrain of first loop. The need of the additional transconductance cell is eliminated by combining the summer and the latch (reducing power consumption). Input of first tap is taken directly after Latch not after SR Latch reducing the loop delay. The proposed half-rate DFE receiver with two taps has been implemented and fabricated in 65 nm CMOS technology. It has been measured at a data rate of 4 Gb/s for a FR4 channel having a loss of 18 dB at Nyquist frequency. The total power consumption of the receiver is 0.938 mW with an energy efficiency of 0.23 pJ/b for a BER < 10-12. The core occupies an area of 993.7 $\mu m^2$.
 
 \begin{figure}[h]
@@ -142,7 +142,7 @@ fix this too
     \caption{ISL DFE Specifications}
 \end{table}
 
-\subsection{A 60-Gb/s PAM4 Wireline Receiver With 2-Tap DFE Employing Track-and-Regenerate Slicer (Azita Emami et al., JSSC 2020)}
+\subsection*{A 60-Gb/s PAM4 Wireline Receiver With 2-Tap DFE Employing Track-and-Regenerate Slicer (Azita Emami et al., JSSC 2020)}
 \textbf{CMOS Track and Regenerate Slicer:}
 
 Instead of the differential output signal grows from approximately zero, it begins with a higher level. The Latch will operate for the whole clock period (like CML) which includes \textbf{Track} phase and \textbf{Regeneration} phase. It consists of 3 stages: 2 preamp and 1 regeneration. M15 and M16 are kept always on with weak currents to prevent cross coupled from being completely off (small static current).

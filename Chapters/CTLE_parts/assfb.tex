@@ -24,7 +24,7 @@ The ASSFB-CTLE concept, illustrated in Figure~\ref{fig:assfb_block_diagram}, bui
 
 The circuit implementation, shown in Figure~\ref{fig:assfb_schematic}, realizes the block diagram concept with specific transistor-level design. The main SD-CTLE consists of $M_1$-$M_2$ with degeneration $R_s$-$C_s$, while the feedback network is implemented through transistors $M_9$-$M_{10}$ ($G_{m3}$) and $M_{11}$-$M_{12}$ ($G_{m4}$). The shunt-shunt configuration effectively reduces impedances at both input and output nodes, with the loop gain $A\beta$ controlling the degree of pole pushing and bandwidth extension.
 
-\subsubsection{Frequency Response Analysis}
+\subsubsection*{Frequency Response Analysis}
 \label{subsec:assfb_freq_response}
 
 \begin{figure}[H]
@@ -62,7 +62,7 @@ A\beta &= G_{m3}G_{m4}R_LR_{L2}
 
 As shown in Figure~\ref{fig:assfb_real}, the ASSFB-CTLE achieves 13.07 dB peaking at 3.55 GHz compared to SD-CTLE's 8 dB at 2.51 GHz, representing a 63.4\% improvement in peaking gain and 41.4\% increase in peaking frequency.
 
-\subsubsection{Design Knobs and Tunability}
+\subsubsection*{Design Knobs and Tunability}
 \label{subsec:assfb_design_knobs}
 
 \subsubsection*{Effect of Transistor Width $W_{11,12}$}
@@ -110,7 +110,7 @@ A\beta &= G_{m3}G_{m4}R_LR_{L2}
 \end{aligned}
 \]
 
-\subsubsection{Design Trade-offs and Guidelines}
+\subsubsection*{Design Trade-offs and Guidelines}
 \label{subsec:assfb_tradeoffs}
 
 \begin{table}[H]

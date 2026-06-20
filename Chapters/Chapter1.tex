@@ -11,15 +11,15 @@ To address these bandwidth-hungry applications, the industry is pushing for high
 % =====================================================================
 % SECTION 2: STANDARD OVERVIEW
 % =====================================================================
-\section{PCIe Standard Overview}
+\section*{PCIe Standard Overview}
 
-\subsection{Historical Evolution: From Parallel to Serial}
+\subsection*{Historical Evolution: From Parallel to Serial}
 The architecture of computer systems has evolved dramatically over the last three decades to meet this bandwidth demand.
 
-\subsection{The Legacy of Parallel PCI}
+\subsection*{The Legacy of Parallel PCI}
 Early systems relied on the Peripheral Component Interconnect (PCI) bus, a parallel architecture where 32 or 64 bits were transferred simultaneously. While effective for low speeds, parallel buses suffer from clock skew and crosstalk issues that make synchronization impossible at gigahertz frequencies. This physical limitation necessitated the shift to high-speed serial communications.
 
-\subsection{The Shift to Serial PCIe}
+\subsection*{The Shift to Serial PCIe}
 PCI Express (PCIe) abandoned the parallel bus in favor of point-to-point serial links. By embedding the clock within the data stream (Clock and Data Recovery), PCIe eliminated clock skew issues, allowing for scalable frequency increases from Gen 1 (2.5 GT/s) to Gen 6 (64 GT/s).
 
 \begin{figure}[H]
@@ -30,7 +30,7 @@ PCI Express (PCIe) abandoned the parallel bus in favor of point-to-point serial 
     \label{fig:pci_vs_pcie}
 \end{figure}
 
-\subsection{Evolution of PCIe}
+\subsection*{Evolution of PCIe}
 PCIe has evolved from a simple serial interface to a complex high-performance interconnect. The standard has doubled its data rate approximately every three years while maintaining backward compatibility.
 
 \begin{table}[H]
@@ -50,7 +50,7 @@ PCIe has evolved from a simple serial interface to a complex high-performance in
 \label{tab:pcie_generations}
 \end{table}
 
-\subsection{Protocol Architecture}
+\subsection*{Protocol Architecture}
 The PCIe protocol is structured into three primary layers:
 \begin{enumerate}
     \item \textbf{Transaction Layer:} Handles TLP assembly and flow control credits.
@@ -65,9 +65,9 @@ The PCIe protocol is structured into three primary layers:
     \label{fig:pcie_layers}
 \end{figure}
 
-\subsection{PCIe 6.0 Innovations}
+\subsection*{PCIe 6.0 Innovations}
 
-\subsection{PAM4 Signaling}
+\subsection*{PAM4 Signaling}
 As shown in Table \ref{tab:pcie_generations}, PCIe 6.0 maintains the 16 GHz Nyquist frequency of Gen 5 but doubles the throughput. This is achieved using Pulse Amplitude Modulation 4-level (PAM4), which encodes 2 bits per symbol.
 
 \begin{figure}[H]
@@ -77,7 +77,7 @@ As shown in Table \ref{tab:pcie_generations}, PCIe 6.0 maintains the 16 GHz Nyqu
     \label{fig:pam4_nrz}
 \end{figure}
 
-\subsubsection{FLIT Encoding (Flow Control Unit)}
+\subsubsection*{FLIT Encoding (Flow Control Unit)}
 To support the low-latency requirements of high-performance computing, PCIe 6.0 abandons the 128b/130b encoding used in previous generations and adopts \textbf{FLIT Mode (Flow Control Unit)}.
 
 \begin{itemize}
@@ -92,7 +92,7 @@ To support the low-latency requirements of high-performance computing, PCIe 6.0 
     \end{itemize}
 \end{itemize}
 
-\subsubsection{Forward Error Correction (FEC) and CRC}
+\subsubsection*{Forward Error Correction (FEC) and CRC}
 Due to the reduced Signal-to-Noise Ratio (SNR) of PAM4, bit errors are more frequent (Target BER $< 10^{-6}$ pre-FEC). PCIe 6.0 implements a robust two-stage error handling mechanism within the FLIT:
 
 \begin{enumerate}
@@ -108,10 +108,7 @@ Due to the reduced Signal-to-Noise Ratio (SNR) of PAM4, bit errors are more freq
 
 This combination ensures that the final bit error rate remains phenomenally low (FIT $< 10^{-9}$), equivalent to previous NRZ generations, despite the fragility of PAM4 signaling.
 
-% =====================================================================
-% SECTION 4: THESIS ORGANIZATION
-% =====================================================================
-\section{Thesis Organization}
+\section*{Thesis Organization}
 This thesis is organized as follows:
 \begin{itemize}
     \item \textbf{Chapter \ref{Chapter2}} presents the system overview and theoretical foundation of the PCIe interface.

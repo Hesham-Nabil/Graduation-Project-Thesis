@@ -32,7 +32,7 @@ The Two-Path CTLE concept, illustrated in Figure~\ref{fig:multipath_block_diagra
 
 The circuit implementation, shown in Figure~\ref{fig:multipath_schematic}, realizes the block diagram with transistors $M_1$-$M_2$ forming the primary SD-CTLE path, while $M_3$-$M_4$ with $R_{Mul}$ and $C_{Mul}$ create the secondary path. The fundamental principle is that "Multi-path CTLE adds another pole-zero path that fixes mid-band loss and flattens the overall response when a single CTLE can't compensate the channel shape."
 
-\subsubsection{Frequency Response Analysis}
+\subsubsection*{Frequency Response Analysis}
 \label{subsec:multipath_freq_response}
 
 \begin{figure}[H]
@@ -66,7 +66,7 @@ The DC gain of the composite system is:
 
  The additional zero $\omega_{z_{Mul}}$ introduced by the secondary path provides the critical mid-frequency compensation needed to flatten the overall response.
 
-\subsubsection{Design Knobs and Tunability}
+\subsubsection*{Design Knobs and Tunability}
 \label{subsec:multipath_design_knobs}
 
 \subsubsection*{Effect of Resistance $R_{Mul}$}
@@ -123,7 +123,7 @@ The transistor widths $W_{3,4}$ control $g_{m3,4}$ of the secondary path, affect
     \item The zero location $\omega_{z_{Mul}}$ depends on the ratio between $g_{m1,2}$ and $g_{m3,4}$.
 \end{itemize}
 
-\subsubsection{Design Trade-offs}
+\subsubsection*{Design Trade-offs}
 \label{subsec:multipath_tradeoffs}
 
 \begin{table}[H]
