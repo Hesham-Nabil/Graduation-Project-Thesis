@@ -1,0 +1,29 @@
+# LaTeX generated files
+*.aux
+*.log
+*.out
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.bbl
+*.blg
+*.loa
+*.lof
+*.lot
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+
+# Compiled PDF
+*.pdf
+
+# OS files
+.DS_Store
+
+# VS Code settings (Optional, keep if you want to share workspace settings)
+.vscode/

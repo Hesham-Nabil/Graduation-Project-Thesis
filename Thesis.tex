@@ -1,0 +1,107 @@
+\documentclass[11pt, twoside, openright]{Thesis}
+\usepackage[square, numbers, comma, sort&compress]{natbib}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tabu}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{pdflscape}
+\usepackage{array}
+\usepackage{pifont}
+\usepackage{hhline}
+\usepackage{textcomp}
+\usepackage{breqn}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{notoccite}
+\usepackage{fancyhdr}
+\usepackage{siunitx}
+\usepackage[dvipsnames, table]{xcolor} 
+\usepackage{enumitem}                   
+\usepackage{booktabs}      
+
+\pagestyle{fancy}
+\fancyhead{} 
+\fancyhead[LE]{\thepage}
+\fancyhead[RE]{\leftmark} 
+\fancyhead[LO]{\rightmark} 
+\fancyhead[RO]{\thepage}
+
+\renewcommand{\lhead}[1]{} 
+\renewcommand{\rhead}[1]{}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}}
+
+\graphicspath{{Pictures/}}
+\hypersetup{urlcolor=blue, colorlinks=true}
+
+\begin{document}
+
+\frontmatter % Roman numerals (i, ii, iii...)
+\setstretch{1.3}
+
+% --- PRELIMINARY PAGES ---
+\input{frontmatter/cover_asu}      
+%\input{frontmatter/committee}      
+%\input{frontmatter/statement}      
+%\input{frontmatter/cv}             
+\input{frontmatter/abstract}       
+%\input{frontmatter/summary}        
+%\input{frontmatter/Acknowledgment} 
+
+% --- LISTS ---
+\pagestyle{fancy}
+\lhead{\emph{Table of Contents}}
+\tableofcontents
+
+%\clearpage
+%\lhead{\emph{List of Figures}}
+%\listoffigures
+
+%\clearpage
+%\lhead{\emph{List of Tables}}
+%\listoftables
+
+%\clearpage
+%\lhead{\emph{List of Algorithms}}
+%\listofalgorithms
+
+% --- ABBREVIATIONS & SYMBOLS (Optional - Comment out if empty) ---
+%\clearpage
+%\lhead{\emph{List of Abbreviations}}
+%\listofsymbols{ll}{
+%    \textbf{PCIe} & \textbf{P}eripheral \textbf{C}omponent \textbf{I}nterconnect \textbf{e}xpress \\
+%    \textbf{VGA} & \textbf{V}ariable \textbf{G}ain \textbf{A}mplifier \\
+%    \textbf{CTLE} & \textbf{C}ontinuous \textbf{T}ime \textbf{L}inear \textbf{E}qualizer \\
+%    \textbf{DFE} & \textbf{D}ecision \textbf{F}eedback \textbf{E}qualizer \\
+%}
+
+%----------------------------------------------------------------------------------------
+%   MAIN CHAPTERS
+%----------------------------------------------------------------------------------------
+\mainmatter 
+\pagestyle{fancy}
+
+\include{Chapters/Chapter1}
+\include{Chapters/Chapter2}
+\include{Chapters/Chapter3}
+\include{Chapters/Chapter4}
+
+
+%----------------------------------------------------------------------------------------
+%   BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{References} % Adds References to TOC
+\lhead{\emph{References}}
+
+\nocite{*}
+\bibliographystyle{IEEEtran} 
+\bibliography{Bibliography}
+
+
+\end{document}

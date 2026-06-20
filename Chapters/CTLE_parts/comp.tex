@@ -1,0 +1,68 @@
+\subsection{Performance Comparison of CTLE Architectures}
+
+\begin{table}[H]
+\centering
+\caption{Comparison of Major CTLE Topologies}
+\label{tab:ctle_comparison}
+\begin{tabular}{@{}p{0.25\textwidth}p{0.7\textwidth}@{}}
+\toprule
+\textbf{Topology} & \textbf{Characteristics} \\
+\midrule
+\textbf{Passive CTLE} & 
+\begin{tabular}[t]{@{}p{0.65\textwidth}@{}}
+• \textbf{Poles/Zeros:} 1P / 1Z \\
+• \textbf{Key Feature:} Zero power, excellent linearity \\
+• \textbf{Best For:} Low-loss channels, linearity-critical \\
+• \textbf{Limitation:} No gain, signal attenuation
+\end{tabular} \\
+\midrule
+\textbf{SD-CTLE} & 
+\begin{tabular}[t]{@{}p{0.65\textwidth}@{}}
+• \textbf{Poles/Zeros:} 2P / 1Z \\
+• \textbf{Key Feature:} Simple, tunable, proven \\
+• \textbf{Best For:} Moderate loss ($<$20 dB), general-purpose \\
+• \textbf{Limitation:} Limited peaking gain
+\end{tabular} \\
+\midrule
+\textbf{NC-CTLE} & 
+\begin{tabular}[t]{@{}p{0.65\textwidth}@{}}
+• \textbf{Poles/Zeros:} 2P / 2Z \\
+• \textbf{Key Feature:} Enhanced peaking via negative-C \\
+• \textbf{Best For:} Severe loss ($>$20 dB) \\
+• \textbf{Limitation:} Stability risk, PVT sensitive
+\end{tabular} \\
+\midrule
+\textbf{Passive-Inductor CTLE} & 
+\begin{tabular}[t]{@{}p{0.65\textwidth}@{}}
+• \textbf{Poles/Zeros:} 3P / 2Z \\
+• \textbf{Key Feature:} Highest peaking gain \\
+• \textbf{Best For:} Performance-critical applications \\
+• \textbf{Limitation:} Large area, limited tuning
+\end{tabular} \\
+\midrule
+\textbf{Active-Inductor CTLE} & 
+\begin{tabular}[t]{@{}p{0.65\textwidth}@{}}
+• \textbf{Poles/Zeros:} 3P / 2Z \\
+• \textbf{Key Feature:} Area-efficient peaking \\
+• \textbf{Best For:} Area-constrained designs \\
+• \textbf{Limitation:} Complexity, power overhead
+\end{tabular} \\
+\midrule
+\textbf{ASSFB-CTLE} & 
+\begin{tabular}[t]{@{}p{0.65\textwidth}@{}}
+• \textbf{Poles/Zeros:} 3P / 1Z \\
+• \textbf{Key Feature:} Maximum bandwidth extension \\
+• \textbf{Best For:} Extreme loss ($>$25 dB) \\
+• \textbf{Limitation:} High power, complex stability
+\end{tabular} \\
+\midrule
+\textbf{Multi-Path CTLE} & 
+\begin{tabular}[t]{@{}p{0.65\textwidth}@{}}
+• \textbf{Poles/Zeros:} 3P / 2Z \\
+• \textbf{Key Feature:} Flattened mid-band response \\
+• \textbf{Best For:} Complex channel profiles \\
+• \textbf{Limitation:} Reduced peak gain
+\end{tabular} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,26 @@
+\section{DFE Adaptation Algorithms}
+
+Since channel characteristics (temperature, cable length, material properties) vary and also, we can have more than one channel, the DFE tap weights (Tk) cannot be fixed. They should be adapted dynamically to minimize the error.
+
+\subsection{Sign-Sign LMS Algorithm}
+- Sign-sign LMS is typically used (derivative of the well-known least mean square (LMS) algorithm)
+
+\begin{equation}
+    T_{n+1}^{k} = T_{n}^{k} + \mu \times sign(e_n) \times sign(y_{n-k}) \tag{6.1}
+\end{equation}
+
+- $y_n$ is the received data and $e_n$ is the error of the received signal with respect to the desired data level dlev
+
+\begin{equation}
+    e_n = x_c(n) - dlev \quad if \quad x_c(n) > 0 \tag{6.2}
+\end{equation}
+
+- We only need to compare on the high level because of symmetric and we don't need high speed in adaptation (+dLev and $x_c(n)$ is high). For any X01 transition if en is -ve (under-equalized) T1 increments by µ and if en is +ve (over-equalized) T1 decrements by µ
+
+- dlev can be detected using an analog peak detector or a second loop can be created to track the signal level dlev
+
+\begin{equation}
+    dlev_{n+1} = dlev_n + \mu \times sign(e_n) \tag{6.3}
+\end{equation}
+
+- For any 1 transition if en is +ve dlev increments by µ and if en is -ve dlev decrements by µ. Depending on the DFE implementation the value of dlev might need to be re-adjusting for each change in the tap weight. Even though we have 2 loops interacting, the adaptation algorithm does converge.

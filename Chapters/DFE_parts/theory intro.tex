@@ -1,0 +1,73 @@
+\section{Decision Feedback Equalization (DFE)}
+
+\subsection{Operational Principle}
+The purpose of equalization in general is simply to remove or reduce the noise or distortion happened to the signal to be well known to the receiver. So, it is required to reduce ISI (inter symbol interference) caused by the channel impulse response that distorts the signal.
+
+The Decision Feedback Equalizer (DFE) is a non-linear equalizer that reconstructs the received signal by subtracting the interference caused by previously detected bits. Ideally, if the sequence of past bits is known correctly, their ISI contribution can be perfectly removed.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{DFE img/DFE_img_08.png}
+    \includegraphics[width=0.45\textwidth]{DFE img/DFE_img_09.png}
+    \caption{(a) unequalized pulse response (b) equalized pulse response}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{DFE img/DFE_img_10.png}
+    \caption{Block diagram of 3 taps DFE}
+\end{figure}
+
+\subsubsection*{Advantages and Disadvantages}
+Advantages:
+\begin{itemize}
+    \item Can boost high frequency content without noise and crosstalk amplification (as feedback signal based on "perfect" digital bits and ISI subtracted based on those bits
+    \item Tap coefficients can be adaptively tuned without any back-channel.
+\end{itemize}
+
+Disadvantages:
+\begin{itemize}
+    \item Cannot cancel pre-cursor ISI. (i.e.: as it depends of the decision of current bit)
+    \item Chance for error propagation (Low in practical links BER = $10^{-12}$)
+    \item Critical feedback timing path.
+    \item High power with respect to other equalizations like CTLE.
+\end{itemize}
+
+\subsection{Critical Timing Constraints}
+The implementation of DFE in multi-gigabit links is strictly limited by the feedback loop delay. The most critical path is the first tap (h1) loop. Once a decision is made by the comparator, it must be multiplied by the tap weight h1 and subtracted from the input signal before the next sampling edge.
+
+\begin{equation}
+    T_{regen} + T_{h1} + T_{sum} + T_{setup} < T_{clk} \tag{3.1}
+\end{equation}
+
+Consequent taps don't have the same tough timing constraint due to the relaxed $T_{cq}$.
+
+(i.e.: The input of the comparator is analog small signal which requires larger time to resolve and give the output than the others FF as their input is a digital signal.
+
+\subsection{Loop Unrolling}
+To break the direct timing dependency of the first tap, a technique known as \textbf{Loop Unrolling} is employed. Instead of waiting for the decision d(n-1), the DFE pre-calculates the summing node value for both possibilities (if the previous bit was +1 or -1).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{DFE img/DFE_img_11.png}
+    \caption{1-tap loop unrolling}
+\end{figure}
+
+Two comparators are required here. Once the actual decision d(n-1) arrives, a multiplexer selects the correct comparator output. The new timing constraint becomes:
+
+\begin{equation}
+    T_{regen} + T_{mux} + T_{setup} < T_{clk} \tag{3.2}
+\end{equation}
+
+This eliminates the summer and tap delay from the critical path, at the cost of doubling the hardware area and power for the first tap.
+
+\subsection{DFE IIR Equalization}
+As mentioned in [3]. If we have a smooth channel, we can make IIR filter instead of FIR and saving many taps and better performance.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{DFE img/DFE_img_12.png}
+    \hfill
+    \includegraphics[width=0.45\textwidth]{DFE img/DFE_img_13.png}
+    \caption{(a) 1-tap DFE with IIR Filter (b) Impulse response}
+\end{figure}
