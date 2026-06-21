@@ -1,6 +1,8 @@
 \documentclass[11pt, twoside, openright]{Thesis}
 \usepackage[square, numbers, comma, sort&compress]{natbib}
 \usepackage{amsmath}
+\usepackage{amssymb}            % ← ADDED
+\usepackage[utf8]{inputenc}     % ← ADDED
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
@@ -22,6 +24,34 @@
 \usepackage[dvipsnames, table]{xcolor} 
 \usepackage{enumitem}                   
 \usepackage{booktabs}      
+\usepackage[T1]{fontenc}       
+\usepackage[export]{adjustbox}  % ← CHANGED: added [export] option         
+\usepackage{tabularx}          
+\usepackage{tasks}            
+\usepackage{mathptmx}           % ← ADDED
+\usepackage{bm}                 % ← ADDED
+\usepackage{verbatim}           % ← ADDED
+\usepackage{listings}           % ← ADDED
+
+% Listings style (Verilog-A)    % ← ADDED
+\definecolor{vcomment}{rgb}{0, 0.5, 0}
+\definecolor{vkeyword}{rgb}{0, 0, 1}
+\definecolor{vstring}{rgb}{0.6, 0.1, 0.1}
+\lstset{
+    language=Verilog,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{vkeyword}\bfseries,
+    commentstyle=\color{vcomment},
+    stringstyle=\color{vstring},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    breaklines=true,
+    frame=single,
+    tabsize=4,
+    captionpos=b,
+    showstringspaces=false
+}
 
 \pagestyle{fancy}
 \fancyhead{} 
@@ -34,8 +64,25 @@
 \renewcommand{\rhead}[1]{}
 \renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}}
+\newcommand{\GHz}{\,\si{\giga\hertz}}
+\newcommand{\RJ}{\mathrm{RJ}}
+\newcommand{\Hz}{\text{Hz}}     % ← ADDED
+\newcommand{\Gbps}{\text{Gbps}} % ← ADDED
+\newcommand{\ps}{\text{ps}}     % ← ADDED
+\newcommand{\mV}{\text{mV}}     % ← ADDED
+\newcommand{\mA}{\text{mA}}     % ← ADDED
+\newcommand{\UI}{\text{UI}}     % ← ADDED
+\newcommand{\BER}{\text{BER}}   % ← ADDED
+\newcommand{\RMS}{\text{RMS}}   % ← ADDED
+\newcommand{\TJ}{T_j}           % ← ADDED
+\renewcommand{\DJ}{D_j}         % ← ADDED
+\newcommand{\DCD}{\text{DCD}}   % ← ADDED
+\newcommand{\ISI}{\text{ISI}}   % ← ADDED
+\newcommand{\BUJ}{\text{BUJ}}   % ← ADDED
+\newcommand{\DCC}{\text{DCC}}   % ← ADDED
+\newcommand{\PLL}{\text{PLL}}   % ← ADDED
 
-\graphicspath{{Pictures/}}
+\graphicspath{{Pictures/}{img/TX_img/}}
 \hypersetup{urlcolor=blue, colorlinks=true}
 
 \begin{document}
@@ -59,10 +106,14 @@
 \mainmatter 
 \pagestyle{fancy}
 
-%\include{Chapters/Chapter1}
-%\include{Chapters/Chapter2}
-%\include{Chapters/Chapter3}
+\include{Chapters/Chapter1}
+\include{Chapters/Chapter2}
+\include{Chapters/Chapter3}
 \include{Chapters/Chapter4}
+\include{Chapters/Chapter5}
+\include{Chapters/Chapter6}
+\include{Chapters/Chapter7}
+\include{Chapters/Chapter8}
 
 %----------------------------------------------------------------------------------------
 %   BIBLIOGRAPHY

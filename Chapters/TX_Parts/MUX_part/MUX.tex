@@ -1,0 +1,2590 @@
+\section{High speed Mux Topologies}
+\begin{figure}[H]
+    \centering
+    % REPLACE 'piso.jpg' with your filename
+    \includegraphics[width=0.7\textwidth]{sch.png}
+    \caption{Schematic implementation of 4:1 MUX.}
+    \label{fig:4:1 MUX Schematic}
+\end{figure}
+% ==================================================
+% 3.1.1 TOPOLOGY A: TRANSMISSION GATE
+% ==================================================
+\subsection{Topology A: Transmission Gate (TG) Implementation}
+\label{subsec:tg_impl}
+
+The first topology evaluated is the Transmission Gate (TG) multiplexer. This architecture is historically significant for its simplicity and zero static power consumption. In this implementation, the conventional tree structure was flattened into a single-stage 4:1 multiplexer to align with the unified Quarter-Rate architecture.
+
+\subsubsection*{Circuit Implementation}
+The circuit consists of four parallel switches connecting the four data inputs ($D_0-D_3$) to a common output node ($V_{out}$).
+\begin{itemize}
+    \item \textbf{Switch Structure:} Each switch is implemented as a Complementary CMOS Transmission Gate, consisting of an NMOS and a PMOS transistor in parallel.
+    \item \textbf{Control Logic:} The gates of these transistors are driven by the 25\% duty cycle clock phases ($\Phi$ and $\overline{\Phi}$). When a clock phase is active (High), both transistors turn ON, creating a low-impedance path for the data to pass to the output.
+    
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % REPLACE 'piso.jpg' with your filename
+    \includegraphics[width=0.8\textwidth]{tgslice (2).png}
+    \caption{Schematic implementation of a single Slice within the Quarter-Rate Transmission Gate (TG) multiplexer. The central TG switch is driven by the 25\% duty cycle clock phase ($clkx$) and its complement to enable the data path ($IN \rightarrow OUT$) for exactly 1 UI.}
+    \label{fig:tgslice_schematic}
+\end{figure}
+
+\subsubsection*{Sizing Strategy (Resistance vs. Capacitance)}
+The performance of the TG topology is governed by the RC time constant at the output node. The optimization goal was to minimize this time constant ($\tau = R_{on} \times C_{total}$) to maximize the bandwidth.
+\begin{itemize}
+    \item \textbf{Design Variable:} A parametric sweep of the transistor Multiplier ($M$) was performed, maintaining a fixed PMOS-to-NMOS width ratio which comes from the mobility ratio of NMOS and Pmos ($W_p$=1.3*$W_n$).
+    \item \textbf{Trade-off Analysis:} Increasing the Multiplier of the transistor both PMOS and NMOS ($M$) reduces the On-Resistance ($R_{on}$) of the switch, which theoretically increases bandwidth. However, increasing width simultaneously increases the parasitic diffusion capacitance ($C_{diff}$) contributed by the switch to the output node.
+    
+    \item \textbf{Delay Matching (TG vs. Inverter):} A critical design feature within the single-slice transmitter architecture is the inclusion of a dummy Transmission Gate ($\text{TG}_2$) acting as a delay-matching element in the main NMOS control path (\texttt{nctrl}). Because the complementary PMOS control path (\texttt{pctrl}) utilizes a dedicated control inverter ($\text{Inverter}_2$) that inherently introduces logical propagation delay, $\text{TG}_2$ is configured as a pass-through delay element to perfectly replicate this latency. This strategic matching ensures that the complementary enabling signals (\texttt{nctrl} and \texttt{pctrl}) arrive at the gates of the primary output transmission gate simultaneously. Consequently, this balances path asymmetry, and successfully mitigates skew-induced deterministic jitter (DJ) at the high-speed multiplexer output node.
+\end{itemize}
+
+
+\subsubsection*{Simulation Results: Transient Response and Eye Diagram}
+The functional verification of the Transmission Gate (TG) topology was performed at a data rate of 64 Gb/s. The simulation results confirm that the 25\% duty cycle clocking scheme effectively prevents contention and allows for correct serialization of the parallel input data.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{tgout_new.png}
+    \caption{Transient response of the Transmission Gate multiplexer output at 64 Gb/s. The waveform demonstrates the correct sequential selection of the input bits ($D_0-D_3$).}
+    \label{fig:tg_transient}
+\end{figure}
+
+Figure \ref{fig:tg_transient} illustrates the large-signal transient response. The output waveform follows the input data pattern, validating the timing logic of the transmission gates.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{tgeye.png}
+    \caption{Simulated Eye Diagram of the Transmission Gate topology at 64 Gb/s.}
+    \label{fig:tg_eye}
+\end{figure}
+
+Figure \ref{fig:tg_eye} presents the eye diagram captured at the output node. The simulation confirms that the Transmission Gate topology is capable of driving the load with a visible eye opening, successfully operating at the target data rate but with observed Intersymbol interference.
+
+% ==================================================
+% TG SIMULATION METRICS SUMMARY (SCHEMATIC LEVEL)
+% ==================================================
+\subsubsection*{Simulation Metrics Summary}
+\label{subsubsec:tg_sim_metrics}
+
+\begin{table}[H]
+    \centering
+    \caption{Summary of Simulated Performance Metrics for the Transmission Gate Topology (Schematic Level)}
+    \label{tab:tg_metrics}
+    \renewcommand{\arraystretch}{1.4} % Adds vertical spacing to rows
+    \setlength{\tabcolsep}{12pt}      % Adds horizontal spacing to columns
+    \begin{tabular}{|l|c|}
+        \hline
+        \textbf{Specification} & \textbf{Value} \\ \hline
+        \textbf{Power (mW)} & 1.665 \\ \hline
+        \textbf{Swing (mV)} & 799.0 \\ \hline
+        \textbf{Eye Width (ps)} & 31.22 \\ \hline
+        \textbf{Eye Crossing (mV)} & 401.0 \\ \hline
+        \textbf{Deterministic Jitter (fs)} & 33.09 \\ \hline
+        \textbf{Power Supply Induced Jitter (fs)} & 99.287 \\ \hline
+        \textbf{PSIJ Sensitivity (fs/mV)} & 9.93 \\ \hline
+        \textbf{Total Jitter (fs)} & 132.377 \\ \hline
+        \textbf{Eye Rise Time (ps)} & 9.90 \\ \hline
+        \textbf{Eye Fall Time (ps)} & 9.90 \\ \hline
+    \end{tabular}
+\end{table}
+
+The schematic-level  simulation results compiled in Table \ref{tab:tg_metrics} demonstrate that the Transmission Gate (TG) multiplexer topology, when operating under a unified Quarter-Rate clocking framework at 64~Gb/s, provides exceptional signal integrity and superior electrical performance. Most notably, the circuit achieves an optimized power consumption profile of 1.665~mW.
+
+From a signal conditioning perspective, the TG topology yields a nearly ideal rail-to-rail output voltage swing of 799.0~mV. This maximizes the vertical eye opening. Crucially, the edge-rate transition times exhibit absolute symmetry, with both the eye rise time ($t_{rise}$) and eye fall time ($t_{fall}$) precisely matched at 9.90~ps. This balanced transient switching performance directly contributes to an exceptional horizontal eye opening, maintaining an expansive eye width of 31.22~ps. Furthermore, the eye crossing voltage is tightly regulated at 401.0~mV, which is safely centered around the ideal $V_{DD}/2$ mid-rail threshold, confirming the elimination of asymmetric duty-cycle distortions.
+
+The timing-stabilization mechanics embedded in the slice—specifically the inclusion of the pass-through delay-matching dummy transmission gate ($\text{TG}_2$)—manifest as a profound reduction in intrinsic timing uncertainty. The design exhibits an ultra-low deterministic jitter (DJ) component of just 33.09~fs. 
+
+Additionally, the topology exhibits superb immunity against environmental and voltage fluctuations. Under a 10~$\text{mV}_{pp}$ supply ripple test condition, the power supply induced jitter (PSIJ) is restricted to 99.287~fs, corresponding to a remarkably low PSIJ sensitivity of 9.93~fs/mV. Because the passive TG switch does not actively pull current from or discharge to the rails via an independent switching branch tied to standard logic thresholds, it remains decoupled from active supply-rail modulation. Accumulating these components yields an absolute total jitter (TJ) performance of 132.377~fs.
+
+\subsection{Topology B: Pseudo-CML (Resistive Load) Implementation}
+\label{subsec:cml_impl}
+
+The second topology evaluated is the Pseudo-Current Mode Logic (Pseudo-CML) driver. While traditional CML relies on a differential pair with a constant tail current, this implementation utilizes a grounded-source, resistive-load topology (often referred to as Pseudo-NMOS in high-speed I/O). This architecture was selected to overcome the voltage headroom limitations of the 22nm FD-SOI process due to the limited supply, eliminating the tail current source to maximize voltage swing at low supply voltages.
+
+\subsubsection*{Circuit Implementation}
+The circuit functions as a single slice of the Quarter-Rate transmitter, consisting of a digital pre-driver stage and an analog resistive-load output stage.
+\begin{itemize}
+    \item \textbf{Switch Structure:} The driver utilizes a single NMOS transistor with its source grounded and its drain connected to the supply ($V_{DD}$) through a passive load resistor ($R$).
+    \item \textbf{Control Logic:} The gate of the NMOS is driven by a 2-input AND gate. This gate combines the data input ($D_0$) with the sampling clock ($CLK_0$).
+    \item \textbf{Pulse Carving Operation:} Since the input data ($D_0$) is stable for 4 Unit Intervals (UI), the AND gate performs a \textbf{Pulse Carving} function. It gates the static data with the 1 UI clock pulse, effectively generating a valid output signal only during the active clock phase.
+    \item \textbf{Logic Operation:} The circuit operates as an inverting driver with a "Return-to-One" reset state. When the clock is Low, the NMOS is forced OFF, pulling the output High ($V_{DD}$). When the clock is High, the output follows the inverse of the data (Logic '1' turns the NMOS ON, pulling the output Low).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % REPLACE 'cml_slice.png' with your filename
+    \includegraphics[width=0.8\textwidth]{Cml.png}
+    \caption{Schematic implementation of a  Pseudo-CML 4-1 MUX. The circuit utilizes a resistive load and a grounded-source NMOS to maximize headroom. The AND gate performs the .}
+    \label{fig:cmlslice_schematic}
+\end{figure}
+
+\subsubsection*{Sizing Strategy (Rise/Fall Time Matching)}
+The sizing strategy for the Pseudo-CML driver prioritized edge-rate symmetry to minimize Inter-Symbol Interference (ISI). The design procedure was decoupled into two steps based on the dominant time constants for the rising and falling edges.
+
+\begin{itemize}
+    \item \textbf{Step 1: Load Resistor Sizing (Rise Time):} Since the rising edge is passive (pull-up via $R$), the rise time is determined strictly by the $RC$ time constant at the output node. The resistor value ($R$) was calculated first to achieve a specific target rise time compatible with the 64 Gb/s data rate ($t_{rise} \approx 2.2 \cdot R \cdot C_{load}$).
+    \item \textbf{Step 2: NMOS Sizing (Fall Time vs. $V_{OL}$):} The falling edge is actively driven by the NMOS transistor. The width ($W$) of the NMOS was sized to achieve an on-resistance ($R_{on}$) that yields a fall time approximately equal to the rise time calculated in Step 1.
+    \item \textbf{Constraint Check ($V_{OL}$):} While matching the fall time, the design was simultaneously constrained by the minimum output voltage ($V_{out,min}$). The final $R_{on}$ had to ensure that the voltage divider formed with $R$ provided a sufficiently low $V_{OL}$ to meet the swing requirements:
+    $$ V_{OL} = V_{DD} \cdot \frac{R_{on}}{R_{on} + R} $$
+\end{itemize}
+
+\subsubsection*{Simulation Results: Transient Response and Eye Diagram}
+The functional verification of the Pseudo-CML topology was performed at a data rate of 64 Gb/s. The simulation results demonstrate the inverting behavior.
+
+\begin{figure}[htbp]
+    \centering
+    % REPLACE 'cmlout.png' with your filename
+    \includegraphics[width=1\textwidth]{cmlout_new.png}
+    \caption{Transient response of the Pseudo-CML driver output at 64 Gb/s. The waveform shows the inverting logic behavior.}
+    \label{fig:cml_transient}
+\end{figure}
+
+Figure \ref{fig:cml_transient} illustrates the large-signal transient response. The discharge path through the NMOS is sufficient to pull the node down to the required $V_{OL}$ level within the unit interval (UI).
+
+\begin{figure}[htbp]
+    \centering
+    % REPLACE 'cmleye.png' with your filename
+    \includegraphics[width=1\textwidth]{cmleye.png}
+    \caption{Simulated Eye Diagram of the Pseudo-CML topology at 64 Gb/s.}
+    \label{fig:cml_eye}
+\end{figure}
+
+Figure \ref{fig:cml_eye} presents the eye diagram captured at the output node. The eye opening confirms that the resistive pull-up and active pull-down provide sufficient bandwidth for 64 Gb/s operation.
+
+% ==================================================
+% ==================================================
+% CML SIMULATION METRICS SUMMARY
+% ==================================================
+\subsubsection*{Simulation Metrics Summary}
+\label{subsubsec:cml_sim_metrics}
+
+\begin{table}[H]
+    \centering
+    \caption{Summary of Simulated Performance Metrics for the Current Mode Topology (Schematic Level)}
+    \label{tab:cml_metrics}
+    \renewcommand{\arraystretch}{1.4}
+    \setlength{\tabcolsep}{12pt}
+    \begin{tabular}{|l|c|}
+        \hline
+        \textbf{Specification} & \textbf{Value} \\ \hline
+        \textbf{Power (mW)} & 5.358 \\ \hline
+        \textbf{Swing (mV)} & 634.44 \\ \hline
+        \textbf{Eye Width (ps)} & 31.246 \\ \hline
+        \textbf{Eye Crossing (mV)} & 400.0 \\ \hline
+        \textbf{Deterministic Jitter (fs)} & 159.10 \\ \hline
+        \textbf{Power Supply Induced Jitter (fs)} & 248.03 \\ \hline
+        \textbf{PSIJ Sensitivity (fs/mV)} & 24.80 \\ \hline
+        \textbf{Total Jitter (fs)} & 407.13 \\ \hline
+        \textbf{Eye Rise Time (ps)} & 9.10 \\ \hline
+        \textbf{Eye Fall Time (ps)} & 4.905 \\ \hline
+    \end{tabular}
+\end{table}
+
+The performance metrics compiled in Table \ref{tab:cml_metrics} underscore the fundamental physical and electrical trade-offs associated with the grounded-source, resistive-load Pseudo-CML multiplexer topology at 64~Gb/s. The architecture exhibits a static-dominated power consumption of 5.358~mW. Unlike the complementary CMOS-based driver configurations, this power dissipation is predominantly static rather than dynamic. It is governed by continuous current conduction through the passive load resistor ($R$) to ground whenever the driving NMOS switch is pulled high by the pulse-carving AND logic, creating an unremitting $V_{DD}/(R + R_{on})$ current path during active low states.
+
+A critical limitation highlighted by the simulation data is the severe restriction on the output voltage swing, which is bounded at 634.44~mV. This represents an approximate 20.6\% reduction in vertical eye margin relative to full rail-to-rail alternatives. This voltage compression is a direct artifact of the resistive divider network formed between the pull-up load resistor and the finite channel on-resistance ($R_{on}$) of the NMOS pull-down device during saturation/triode transitions. Consequently, the minimum low-level output voltage ($V_{OL}$) cannot reach the true ground rail, compressing the overall signal amplitude, lowering the noise margin, and rendering the design acutely susceptible to Process, Voltage, and Temperature (PVT) variations.
+
+From a timing perspective, the Pseudo-CML driver exhibits an inherent edge-rate asymmetry. The passive pull-up mechanism yields an eye rise time of 9.10~ps, which is limited strictly by the passive charging $RC$ time constant of the output node. Conversely, the active pull-down mechanism via the high-velocity NMOS channel achieves an eye fall time of 4.905~ps. 
+
+Despite this severe transient edge disparity, the eye crossing remains centered at 400.0~mV, and the horizontal eye opening exhibits an expansive eye width of 31.246~ps due to the ultra-fast discharging edge. However, the asymmetric transition profiles degrade the deterministic jitter performance, resulting in an intrinsic DJ of 159.10~fs. Under supply ripple testing, the circuit registers a PSIJ of 248.03~fs with a sensitivity metric of 24.80~fs/mV, driven by the fact that supply fluctuations directly modulate the output node voltage through the passive pull-up resistor. This culminates in a cumulative Total Jitter of 407.13~fs.
+
+\subsection{Topology C: Tri-State Inverter Implementation}
+\label{subsec:tinv_impl}
+
+The final topology evaluated is the Tri-State Inverter based driver. This architecture combines the signal driving capability of standard CMOS logic with the multiplexing functionality required for the Quarter-Rate transmitter. Unlike the Transmission Gate (which is a passive switch) or the CML driver (which is a resistive-load switch), the Tri-State inverter provides active drive for both logic '0' and logic '1' while supporting a high-impedance (Hi-Z) state for serialization.
+
+\subsubsection*{Circuit Implementation}
+The circuit functions as a selectable driver slice. Unlike a conventional "stacked" tri-state inverter which puts gating transistors in series with the output (reducing voltage headroom), this topology uses a \textbf{Split-Path Pre-Driver} scheme to control a standard complementary output stage.
+
+\begin{itemize}
+    \item \textbf{Switch Structure:} The output stage consists of a single PMOS transistor ($P_0$) and a single NMOS transistor ($N_0$) connected to the output node ($V_{out}$). This minimizes the on-resistance and maximizes the output voltage swing since there are no stacked series switches.
+    
+    \item \textbf{Control Logic:} The tri-state functionality is achieved by independently controlling the gates of $P_0$ and $N_0$ using two parallel logic paths driven by the sampling clock ($CLK_0$).
+    \begin{itemize}
+        \item \textbf{PMOS Control Path:} The data ($D_0$) and clock ($CLK_0$) are inputs to an AND gate followed by an Inverter.
+        \begin{itemize}
+            \item When $CLK_0 = 1$ and $D_0 = 1$: The path outputs logic '0', turning the PMOS \textbf{ON} (Pull-Up).
+        \end{itemize}
+        \item \textbf{NMOS Control Path:} The inverted data ($D_{0\_bar}$) and clock ($CLK_0$) are inputs to an AND gate followed by a Transmission Gate (TG).
+        \begin{itemize}
+             \item When $CLK_0 = 1$ and $D_0 = 0$ (so $D_{0\_bar} = 1$): The path outputs logic '1', turning the NMOS \textbf{ON} (Pull-Down).
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{High Impedance State (Hi-Z):} When the slice is inactive ($CLK_0 = 0$), the control logic forces both output transistors into the cut-off region simultaneously.
+    \begin{itemize}
+        \item The top path outputs logic '1', turning the PMOS \textbf{OFF}.
+        \item The bottom path outputs logic '0', turning the NMOS \textbf{OFF}.
+        \item With both devices off, the output node is left floating (High-Z), allowing parallel active slices to drive the bus without contention.
+    \end{itemize}
+\subsubsection*{Sizing Strategy (Delay Matching \& Symmetry)}
+The sizing strategy for the Split-Path Tri-State topology required a two-stage optimization process to ensure both timing synchronization and drive strength symmetry.
+
+\begin{itemize}
+    \item \textbf{Step 1: Path Delay Equalization:}
+    The primary challenge of the split-path architecture is that the PMOS control path includes an Inverter (logic inversion), while the NMOS control path is non-inverting. To compensate for the propagation delay introduced by the Inverter, a Transmission Gate (TG) was inserted into the NMOS path.
+    \begin{itemize}
+        \item The width of the transistors in the Transmission Gate was swept parametrically to tune its RC delay.
+        \item The optimization goal was to match the arrival time of the control signals at the gates of PMOS and NMOS, ensuring simultaneous switching and minimizing short-circuit power during transitions.
+    \end{itemize}
+
+    \item \textbf{Step 2: Output Stage Symmetry ($V_M$ Centering):}
+    Once the control signals were synchronized, the output transistors  were sized to achieve symmetric drive strength.
+    \begin{itemize}
+        \item Since the hole mobility ($\mu_p$) is lower than electron mobility ($\mu_n$), the PMOS width ($W_p$) was sized larger than the NMOS width ($W_n$) ($\mu_n$=1.6*$\mu_p$).
+        \item The ratio $W_p/W_n$ was adjusted to so that ($W_p$=1.6*$W_n$).the Rise Time ($t_{rise}$) and Fall Time ($t_{fall}$) were approximately equal. This symmetry centers the switching threshold ($V_M$) at $V_{DD}/2$, maximizing the noise margins and horizontal eye opening.
+    \end{itemize}
+    
+\end{itemize}
+    \item \textbf{Delay Matching (TG vs. Inverter):} A critical design feature is the inclusion of the Transmission Gate in the NMOS control path. Since the PMOS path uses an Inverter (which adds propagation delay), the TG is inserted in the NMOS path to replicate this delay. This ensures that the drive signals arrive at the gates of output PMOS and NMOS simultaneously, minimizing crossover current and skew.
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    % REPLACE 'tri_slice2.png' with your actual filename
+    \includegraphics[width=0.8\textwidth]{tri_slice2.png}
+    \caption{Schematic implementation of the Split-Path Tri-State driver. The design uses independent logic paths for the PMOS and NMOS devices. A Transmission Gate is inserted in the bottom path to match the delay of the Inverter in the top path.}
+    \label{fig:tinvslice_schematic}
+\end{figure}
+\subsubsection*{Simulation Results: Transient Response and Eye Diagram}
+The functional verification of the Tri-State topology was performed at 64 Gb/s. The results demonstrate sharp, rail-to-rail transitions with minimal Inter-Symbol Interference (ISI).
+
+\begin{figure}[htbp]
+    \centering
+    % REPLACE 'tinvout.png' with your filename
+    \includegraphics[width=1\textwidth]{tinvout_new.png}
+    \caption{Transient response of the Tri-State Inverter driver output at 64 Gb/s.}
+    \label{fig:tinv_transient}
+\end{figure}
+
+Figure \ref{fig:tinv_transient} illustrates the transient response. The waveform shows full rail-to-rail switching with balanced rising and falling edges, validating the symmetric sizing strategy.
+
+\begin{figure}[htbp]
+    \centering
+    % REPLACE 'tinveye.png' with your filename
+    \includegraphics[width=1\textwidth]{tinveye.png}
+    \caption{Simulated Eye Diagram of the Tri-State Inverter topology at 64 Gb/s.}
+    \label{fig:tinv_eye}
+\end{figure}
+
+Figure \ref{fig:tinv_eye} presents the eye diagram. The Tri-State topology yields a very clean eye, benefiting from the active restoration of signal levels.
+
+% ==================================================
+% ==================================================
+% TRI-STATE SIMULATION METRICS SUMMARY
+% ==================================================
+\subsubsection*{Simulation Metrics Summary}
+\label{subsubsec:tinv_sim_metrics}
+
+\begin{table}[H]
+    \centering
+    \caption{Summary of Simulated Performance Metrics for the Tri-State Inverter Topology (Schematic Level)}
+    \label{tab:tinv_metrics}
+    \renewcommand{\arraystretch}{1.4}
+    \setlength{\tabcolsep}{12pt}
+    \begin{tabular}{|l|c|}
+        \hline
+        \textbf{Specification} & \textbf{Value} \\ \hline
+        \textbf{Power (mW)} & 2.300 \\ \hline
+        \textbf{Swing (mV)} & 798.81 \\ \hline
+        \textbf{Eye Width (ps)} & 31.19 \\ \hline
+        \textbf{Eye Crossing (mV)} & 403.0 \\ \hline
+        \textbf{Deterministic Jitter (fs)} & 56.30 \\ \hline
+        \textbf{Power Supply Induced Jitter (fs)} & 462.074 \\ \hline
+        \textbf{PSIJ Sensitivity (fs/mV)} & 46.20 \\ \hline
+        \textbf{Total Jitter (fs)} & 518.37 \\ \hline
+        \textbf{Eye Rise Time (ps)} & 8.00 \\ \hline
+        \textbf{Eye Fall Time (ps)} & 10.00 \\ \hline
+    \end{tabular}
+\end{table}
+
+The simulation results for the Split-Path Tri-State Inverter multiplexer are organized in Table \ref{tab:tinv_metrics}, detailing a highly competitive yet highly sensitive operating profile. The topology demonstrates a well-optimized dynamic power consumption of 2.300~mW at 64~Gb/s. The active push-pull output stage restores signal amplitudes effectively, generating a full rail-to-rail voltage swing of 798.81~mV that yields a clean, wide vertical eye profile.
+
+However, the split-path control topology introduces subtle timing asymmetries between the independent PMOS and NMOS gate-drive networks. Even with the integration of an RC-tuned delay-matching transmission gate in the NMOS path to compensate for the propagation delay of the PMOS path's control inverter, complete transient synchronization remains elusive. This manifests as an uncompensated skew between the active driving states, producing an eye rise time of 8.00~ps and a slower eye fall time of 10.00~ps. This edge-rate mismatch skews the eye crossing slightly upward to 403.0~mV, though it manages to retain a viable horizontal eye width of 31.19~ps. The intrinsic timing mismatch limits the deterministic jitter component to 56.30~fs under idealized clean-supply conditions.
+
+The major vulnerability of the Tri-State Inverter topology is its extreme susceptibility to power supply variations. Under a 10~$\text{mV}_{pp}$ supply noise injection, the Power Supply Induced Jitter escalates dramatically to 462.074~fs, corresponding to an exceptionally high PSIJ sensitivity of 46.20~fs/mV. 
+
+Because the split-path inverter at output stage are referenced directly to the $V_{DD}$ and ground rails, any voltage ripple instantly modulates the logic switching thresholds ($V_{th}$) and charging currents of the driving nodes. This directly translates supply noise into severe Supply noise induced Jitter at the high-speed output. Consequently, this supply-noise vulnerability causes the Total Jitter to balloon to 518.37~fs, representing the poorest jitter accumulation profile among all three evaluated architectures.
+
+\subsection{Comparison and Topology Selection}
+\label{subsec:topology_comparison}
+
+This section presents a comprehensive comparative analysis of the three high-speed multiplexer driver topologies evaluated for the unified Quarter-Rate transmitter architecture: Transmission Gate (TG), Split-Path Tri-State Inverter, and Pseudo-CML. The comparisons are grounded on highly optimized schematic-level simulation vectors executed at an operational data rate of 64~Gb/s.
+
+\subsubsection*{Summary of Specifications}
+
+Table \ref{tab:comparison_summary} aggregates the complete suite of simulated performance indicators across all three design variants, establishing a direct quantitative foundation for topological selection.
+
+\begin{table}[H]
+    \centering
+    \caption{Performance Comparison of High-Speed Driver Topologies at 64 Gb/s}
+    \label{tab:comparison_summary}
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Specification} & \textbf{Transmission Gate} & \textbf{Tri-State Inverter} & \textbf{Current Mode (CML)} \\ \hline
+        \textbf{Power (mW)} & 1.665 & 2.300 & 5.358 \\ \hline
+        \textbf{Swing (mV)} & 799.0 & 798.81 & 634.44 \\ \hline
+        \textbf{Eye Width (ps)} & 31.22 & 31.19 & 31.246 \\ \hline
+        \textbf{Eye Crossing (mV)} & 401.0 & 403.0 & 400.0 \\ \hline
+        \textbf{Deterministic Jitter (fs)} & 33.09 & 56.30 & 159.10 \\ \hline
+        \textbf{PSIJ at 10$\text{mV}_{pp}$ Noise (fs)} & 99.3 & 462.074 & 248.03 \\ \hline
+        \textbf{PSIJ Sensitivity (fs/mV)} & 9.3 & 46.20 & 24.80 \\ \hline
+        \textbf{Total Jitter (fs)} & 132.377 & 518.37 & 407.13 \\ \hline
+        \textbf{Eye Rise Time (ps)} & 9.90 & 8.00 & 9.10 \\ \hline
+        \textbf{Eye Fall Time (ps)} & 9.90 & 10.00 & 4.905 \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsubsection*{Performance Comparison and Trade-off Analysis}
+
+A strategic trade-off analysis reveals distinct architectural balances across the evaluated topologies:
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=*]
+    \item \textbf{Power Dissipation Efficiency:} 
+    The \textbf{Transmission Gate (TG)} architecture demonstrates optimal efficiency, consuming 1.665~mW. This yields a 27\% energy saving over the Tri-State Inverter (2.300~mW) and a 69\% reduction over the Pseudo-CML driver (5.358~mW). The TG's minimized parasitics drastically reduce dynamic clock load, whereas the Pseudo-CML topology suffers from severe static current conduction through its passive pull-up resistors.
+
+    \item \textbf{Output Swing and Signal Integrity:} 
+    Both the \textbf{TG} and \textbf{Tri-State Inverter} achieve near-ideal, rail-to-rail voltage swings ($\approx$799~mV), maximizing vertical eye margins and signal-to-noise ratio (SNR). Conversely, the \textbf{Pseudo-CML} output is compressed to 634.44~mV due to the resistive voltage divider formed between the load resistor and the pulling NMOS channel, restricting low-level noise immunity.
+
+    \item \textbf{Timing Symmetry and Jitter Accumulation:} 
+    The transient switching behaviors reveal critical noise immunity:
+    \begin{itemize}[leftmargin=1.5em]
+        \item \textbf{Transmission Gate:} Achieves perfect edge symmetry ($t_r = t_f = 9.90$~ps) and an excellent eye crossing at 401.0~mV. It exhibits superior supply noise immunity with a low PSIJ sensitivity of 9.93~fs/mV, restraining the cumulative Total Jitter (TJ) to a minimal 132.377~fs.
+        \item \textbf{Tri-State Inverter:} Delivers sharp edges but introduces a mild timing mismatch ($t_r = 8.00$~ps vs. $t_f = 10.00$~ps) from split-path delays. Its primary bottleneck is high supply noise vulnerability, featuring a severe PSIJ sensitivity of 46.20~fs/mV that balloons its TJ to 518.37~fs.
+        \item \textbf{Pseudo-CML:} Exhibits extreme edge asymmetry ($t_r = 9.10$~ps vs. $t_f = 4.905$~ps) caused by slow passive RC charging versus active NMOS discharge. This elevates its intrinsic DJ to 159.10~fs, which combines with a moderate noise sensitivity (24.80~fs/mV) to yield a TJ of 407.13~fs.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Final Topology Selection}
+
+Based on the rigorous quantitative evaluations compiled in Table \ref{tab:comparison_summary}, the \textbf{Transmission Gate (TG) based architecture} is definitively selected as the optimal topology for the high-speed 4:1 multiplexer design within this Quarter-Rate transmitter. 
+
+The justification for this topological selection rests on three pillars:
+\begin{enumerate}
+    \item \textbf{Maximum Power Efficiency:} Achieving an operating power of just 1.665~mW satisfies low-power consumption.
+    \item \textbf{Superior Jitter Performance and Noise Robustness:} The combination of a minimal intrinsic deterministic jitter (33.09~fs) and high immunity to supply ripples (99.287~fs) produces a remarkably low Total Jitter profile (132.377~fs) that sits well within high-speed link budgets.
+    \item \textbf{Optimal Signal Quality:} The absolute edge symmetry (9.90~ps Rise/Fall) and a well-centered eye crossing (401.0~mV) provide a highly reliable horizontal and vertical eye opening at 64~Gb/s.
+\end{enumerate}
+
+\textbf{Consequently, the design will confidently proceed with the Transmission Gate based Mux topology into the next critical phases of verification, specifically Process Corner Variations, to ensure robust operation across all PVT variations.}
+
+\subsection{Multiplexer Functional Validation}
+\label{subsec:mux_functional_validation}
+
+To verify the correct logical operation of the implemented multiplexer, a bit-wise comparison testbench was established. This methodology involves sampling the transient output of the designed multiplexer against a parallel ideal reference model. The sampled outputs are subsequently processed through an XOR logic operation to identify any bit-mismatch or timing-alignment errors.
+
+\subsubsection*{Logic Verification Methodology}
+
+The functional integrity is validated by confirming a null output from the XOR gate chain across the entire data sequence. Any deviation indicates a logic fault or timing violation within the multiplexer's switching stages.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{validation_testbench.png}
+    \vspace{1mm} % Placeholder for XOR logic testbench diagram
+    \caption{Functional validation testbench architecture using ideal-reference bit-sampling and XOR-based mismatch detection.}
+    \label{fig:mux_xor_testbench}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{validation_of_output.png}
+    \vspace{1mm} % Placeholder for XOR output waveform showing zero-mismatch
+    \caption{Transient verification waveform: XOR output remaining at ground level throughout the operation confirms full logical equivalence between the design and the ideal reference.}
+    \label{fig:mux_xor_waveforms}
+\end{figure}
+
+As shown in Figure \ref{fig:mux_xor_waveforms}, the absence of pulses at the XOR output node confirms that the multiplexer successfully executes the intended data serialization without logical errors, validating the switching fabric design.
+
+\section{High Speed Mux Process Corners Simulation}
+\label{sec:corners_analysis}
+This section evaluates the robustness of the transmitter design against Process, Voltage, and Temperature (PVT) variations. To ensure high-yield compliance with the strict PCIe 6.0 timing and power budgets, the circuits were subjected to full corner simulations across standard process permutations—Typical-Typical (TT), Fast-Fast (FF), and Slow-Slow (SS)—as well as operational temperature extremes.
+
+
+\subsection{High-Speed Multiplexer Core PVT Variations and Supply Variation Analysis}
+\label{subsec:mux_core_corners}
+
+To evaluate the operational robustness of the  Transmission Gate (TG) multiplexer core against environmental and design grid fluctuations, a comprehensive Process, Voltage, and Temperature (PVT) variation analysis was conducted. The multiplexer engine was simulated across four principal process corner permutations: Fast-Fast (FF), Fast-Slow (FS), Slow-Fast (SF), and Slow-Slow (SS). Thermal dependencies were captured across a standard operational envelope spanning $T = -40^{\circ}\text{C}$ (cold extreme), $T = 27^{\circ}\text{C}$ (nominal room temperature), and $T = 125^{\circ}\text{C}$ (extreme thermal junction). 
+
+To analyze the circuit's sensitivity to voltage drop and power grid scaling, the entire PVT matrix was characterized under two distinct supply regimes: a sub-nominal supply track at $V_{DD} = 720\text{ mV}$ (representing a strict $-10\%$ drop from nominal targets) and a super-nominal supply track at $V_{DD} = 880\text{ mV}$ (representing a $+10\%$ boost). All jitter metrics were evaluated under a high-frequency supply ripple condition of $20\text{ mV}_{pp}$. Power Supply Induced Jitter (PSIJ) and total timing margins are normalized directly against this ripple amplitude to establish the deterministic sensitivity parameter ($\text{fs/mV}$) across all operational domains.
+
+\subsubsection*{Sub-Nominal Supply Characterization ($V_{DD} = 720\text{ mV}$)}
+
+The performance vectors and corresponding waveform captures for the  multiplexer core operating under the sub-nominal $720\text{ mV}$ supply constraint are organized below.
+
+% ==================================================
+% 720mV - NOMINAL TEMPERATURE
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Specification} & \textbf{FF} & \textbf{FS} & \textbf{SF} & \textbf{SS} \\ \hline
+        Power (mW) & 1.609 & 1.569 & 1.539 & 1.548 \\ \hline
+        Voltage Swing (mV) & 709.23 & 699.00 & 702.00 & 685.00 \\ \hline
+        Eye Width (ps) & 31.208 & 31.770 & 31.770 & 31.100 \\ \hline
+        Eye Crossing (mV) & $\sim$363 & $\sim$360 & $\sim$368 & $\sim$364 \\ \hline
+        Deterministic Jitter (fs) & 41.64 & 73.60 & 73.67 & 148.50 \\ \hline
+        Absolute PSIJ (fs) & 87.29 & 109.45 & 131.80 & 181.10 \\ \hline
+        Normalized PSIJ (fs/mV) & 4.365 & 5.473 & 6.590 & 9.055 \\ \hline
+        Total Jitter (fs) & 128.93 & 183.05 & 205.47 & 329.60 \\ \hline
+        Eye Rise Time (ps) & 9.73 & 12.35 & 10.81 & 14.31 \\ \hline
+        Eye Fall Time (ps) & 9.73 & 11.04 & 11.48 & 12.87 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{TG Mux Core Performance Corners at $V_{DD} = 720\text{ mV}$ and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:tg_corners_720_nominal}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{720mv_eyewith_totaljitter_ATnominal.png}
+    \vspace{1mm}
+    \caption{Simulated multiplexer output eye diagrams at $V_{DD} = 720\text{ mV}$ and $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:eyes_720_nominal}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 720mV - COLD TEMPERATURE
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Specification} & \textbf{FF} & \textbf{FS} & \textbf{SF} & \textbf{SS} \\ \hline
+        Power (mW) & 1.500 & 1.45 & 1.45 & 1.514 \\ \hline
+        Voltage Swing (mV) & 713.10 & 705.10 & 708.40 & 695.36 \\ \hline
+        Eye Width (ps) & 31.215 & 31.234 & 31.210 & 31.120 \\ \hline
+        Eye Crossing (mV) & $\sim$360 & $\sim$360.5 & $\sim$367 & $\sim$363 \\ \hline
+        Deterministic Jitter (fs) & 43.71 & 69.76 & 69.66 & 119.85 \\ \hline
+        Absolute PSIJ (fs) & 79.99 & 111.26 & 131.07 & 189.18 \\ \hline
+        Normalized PSIJ (fs/mV) & 4 & 5.563 & 6.554 & 9.459 \\ \hline
+        Total Jitter (fs) & 123.70 & 181.02 & 200.73 & 309.03 \\ \hline
+        Eye Rise Time (ps) & 9.25 & 11.82 & 10.24 & 13.66 \\ \hline
+        Eye Fall Time (ps) & 9.105 & 10.35 & 10.74 & 12.16 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{TG Mux Core Performance Corners at $V_{DD} = 720\text{ mV}$ and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:tg_corners_720_cold}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{720mv_eyewith_totaljitter_cold.png}
+    \vspace{1mm}
+    \caption{Simulated multiplexer output eye diagrams at $V_{DD} = 720\text{ mV}$ and $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:eyes_720_cold}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 720mV - HOT TEMPERATURE
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Specification} & \textbf{FF} & \textbf{FS} & \textbf{SF} & \textbf{SS} \\ \hline
+        Power (mW) & 2.015 & 1.825 & 1.783 & 1.689 \\ \hline
+        Voltage Swing (mV) & 698.00 & 684.332 & 688.247 & 665.328 \\ \hline
+        Eye Width (ps) & 31.200 & 31.167 & 31.157 & 31.069 \\ \hline
+        Eye Crossing (mV) & $\sim$360 & $\sim$356 & $\sim$365 & $\sim$363 \\ \hline
+        Deterministic Jitter (fs) & 49.56 & 82.74 & 92.68 & 157.00 \\ \hline
+        Absolute PSIJ (fs) & 93.09 & 115.98 & 124.05 & 203.9 \\ \hline
+        Normalized PSIJ (fs/mV) & 4.655 & 5.799 & 6.203 & 10.2 \\ \hline
+        Total Jitter (fs) & 142.65 & 198.72 & 216.73 & 360.95 \\ \hline
+        Eye Rise Time (ps) & 10.52 & 13.35 & 11.67 & 15.34 \\ \hline
+        Eye Fall Time (ps) & 10.64 & 11.97 & 12.42 & 13.77 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{TG Mux Core Performance Corners at $V_{DD} = 720\text{ mV}$ and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:tg_corners_720_hot}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{720mv_eyewith_totaljitter.png}
+    \vspace{1mm}
+    \caption{Simulated multiplexer output eye diagrams at $V_{DD} = 720\text{ mV}$ and $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:eyes_720_hot}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% SUBSECTION: 880mV REGIME
+% ==================================================
+\subsubsection*{Super-Nominal Supply Characterization ($V_{DD} = 880\text{ mV}$)}
+
+The performance parameters and waveform metrics for the core architecture operating under the super-nominal $880\text{ mV}$ voltage boost condition are compiled below. Each temperature step is systematically organized with its quantitative metric table followed by its corresponding process corner grid figure.
+
+% ==================================================
+% 880mV - NOMINAL TEMPERATURE (27 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Specification} & \textbf{FF} & \textbf{FS} & \textbf{SF} & \textbf{SS} \\ \hline
+        Power (mW) & 2.334 & 2.153 & 2.095 & 2 \\ \hline
+        Voltage Swing (mV) & 870.00 & 864.00 & 867.00 & 858.15 \\ \hline
+        Eye Width (ps) & 31.210 & 31.206 & 31.205 & 31.200 \\ \hline
+        Eye Crossing (mV) & $\sim$437 & $\sim$435 & $\sim$442 & $\sim$440 \\ \hline
+        Deterministic Jitter (fs) & 40.00 & 44.19 & 45.47 & 50.35 \\ \hline
+        Absolute PSIJ (fs) & 36.91 & 45.15 & 48.61 & 54.74 \\ \hline
+        Normalized PSIJ (fs/mV) & 1.845 & 2.258 & 2.431 & 2.737 \\ \hline
+        Total Jitter (fs) & 76.91 & 89.34 & 94.08 & 117.16 \\ \hline
+        Eye Rise Time (ps) & 8.06 & 9.60 & 8.662 & 10.70 \\ \hline
+        Eye Fall Time (ps) & 8.07 & 9.042 & 9.329 & 10.46 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{TG Mux Core Performance Corners at $V_{DD} = 880\text{ mV}$ and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:tg_corners_880_nominal}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{880mv_eyewith_totaljitter_ATnominal.png}
+    \vspace{1mm}
+    \caption{Simulated multiplexer output eye diagrams at $V_{DD} = 880\text{ mV}$ and $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:eyes_880_nominal}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 880mV - COLD TEMPERATURE (-40 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Specification} & \textbf{FF} & \textbf{FS} & \textbf{SF} & \textbf{SS} \\ \hline
+        Power (mW) & 2.180 & 2.049 & 1.998 & 1.943 \\ \hline
+        Voltage Swing (mV) & 865.40 & 868.80 & 871.00 & 865.30 \\ \hline
+        Eye Width (ps) & 31.450 & 32.110 & 32.050 & 31.390 \\ \hline
+        Eye Crossing (mV) & 440.00 & 438.00 & 443.00 & 440.00 \\ \hline
+        Deterministic Jitter (fs) & 44.90 & 48.15 & 48.60 & 56.87 \\ \hline
+        Absolute PSIJ (fs) & 24.70 & 36.51 & 40.12 & 51.55 \\ \hline
+        Normalized PSIJ (fs/mV) & 1.235 & 1.825 & 2.006 & 2.578 \\ \hline
+        Total Jitter (fs) & 69.60 & 84.66 & 88.72 & 108.42 \\ \hline
+        Eye Rise Time (ps) & 7.60 & 9.05 & 8.13 & 10.00 \\ \hline
+        Eye Fall Time (ps) & 7.51 & 8.40 & 8.61 & 9.64 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{TG Mux Core Performance Corners at $V_{DD} = 880\text{ mV}$ and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:tg_corners_880_cold}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{880mv_eyewith_totaljitter_cold.png}
+    \vspace{1mm}
+    \caption{Simulated multiplexer output eye diagrams at $V_{DD} = 880\text{ mV}$ and $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:eyes_880_cold}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 880mV - HOT TEMPERATURE (125 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Specification} & \textbf{FF} & \textbf{FS} & \textbf{SF} & \textbf{SS} \\ \hline
+        Power (mW) & 2.894 & 2.544 & 2.492 & 2.272 \\ \hline
+        Voltage Swing (mV) & 867.40 & 852.00 & 854.60 & 842.00 \\ \hline
+        Eye Width (ps) & 31.380 & 31.840 & 31.810 & 31.280 \\ \hline
+        Eye Crossing (mV) & 433.00 & 430.00 & 440.00 & 473.00 \\ \hline
+        Deterministic Jitter (fs) & 43.73 & 46.25 & 51.90 & 52.42 \\ \hline
+        Absolute PSIJ (fs) & 41.67 & 51.39 & 47.29 & 73.43 \\ \hline
+        Normalized PSIJ (fs/mV) & 2.083 & 2.570 & 2.365 & 3.672 \\ \hline
+        Total Jitter (fs) & 85.40 & 97.64 & 99.19 & 125.85 \\ \hline
+        Eye Rise Time (ps) & 8.96 & 10.77 & 9.62 & 12.00 \\ \hline
+        Eye Fall Time (ps) & 9.00 & 10.00 & 10.37 & 11.57 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{TG Mux Core Performance Corners at $V_{DD} = 880\text{ mV}$ and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:tg_corners_880_hot}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{880mv_eyewith_totaljitter.png}
+    \vspace{1mm}
+    \caption{Simulated multiplexer output eye diagrams at $V_{DD} = 880\text{ mV}$ and $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:eyes_880_hot}
+\end{figure}
+
+\clearpage
+
+
+\subsection*{High-Speed MUX Corner Performance Analysis}
+\label{subsec:pre_layout_mux_corners}
+
+A concise physical evaluation of the core multiplexer circuit across sub-nominal ($V_{DD} = 720\text{ mV}$) and super-nominal ($V_{DD} = 880\text{ mV}$) supply tracks reveals the following behaviors under extreme PVT variations:
+
+\begin{itemize}
+    \item \textbf{Switch On-Resistance ($R_{on}$) and Overdrive Voltage:} Lowering the voltage to $720\text{ mV}$ compresses the transistor gate overdrive ($V_{GS} - V_{th}$), raising the transmission gate channel resistance ($R_{on}$). This current degradation slows down node charging, extending transition edge rates specifically under room-temperature Slow-Slow (SS) conditions ($t_{rise} = 14.31\text{ ps}$, $t_{fall} = 12.87\text{ ps}$). Stepping up to the $880\text{ mV}$ rail expands the overdrive, lowering $R_{on}$ to sharpen the edges ($t_{rise} = 10.70\text{ ps}$, $t_{fall} = 10.46\text{ ps}$ in SS) and secure a stable horizontal eye width near $31.2\text{ ps}$.
+    
+    \item \textbf{Cross-Corner Asymmetric Skew Tracking:} Process imbalances in the skewed quadrants (FS and SF) induce distinct rise-and-fall disparities as NMOS and PMOS speeds drift independently. At a low $720\text{ mV}$ rail, the Fast-NMOS/Slow-PMOS (FS) corner expands the rise time to $12.35\text{ ps}$ due to the weak PMOS current capacity, whereas the Slow-NMOS/Fast-PMOS (SF) corner stretches the fall time to $11.48\text{ ps}$. Shifting to the $880\text{ mV}$ rail delivers sufficient current drive to pull both corners back into close synchronization.
+    
+    \item \textbf{Thermal Headroom and Vertical Eye Centering:} The compressed voltage headroom of the sub-nominal $720\text{ mV}$ supply restricts the vertical eye amplitude to its lowest value of $665.33\text{ mV}$ during high-temperature SS operation due to thermal threshold voltage shifts. Restoring the supply track to $880\text{ mV}$ unloads these headroom limits, pushing the vertical opening to a healthy range between $842\text{ mV}$ and $871\text{ mV}$. Driven by these supply shifts, the centered crossing point moves predictably from $\sim$362~mV up to $\sim$438~mV.
+    
+    \item \textbf{Jitter Rejection vs. Dynamic Power Trade-offs:} Supply scaling creates a direct trade-off between power dissipation and noise immunity. The sub-nominal $720\text{ mV}$ rail minimizes cell power consumption ($1.450\text{ mW}$ to $2.015\text{ mW}$) but increases vulnerability to voltage ripples, forcing the worst-case normalized Power Supply Induced Jitter (PSIJ) sensitivity to peak at $9.459\text{ fs/mV}$. Conversely, the super-nominal $880\text{ mV}$ rail expands power consumption up to a maximum peak of $2.894\text{ mW}$ but aggressively drops the worst-case normalized PSIJ coefficient down to a resilient $3.672\text{ fs/mV}$ to satisfy the  limits required by the PCIe 6.0 standard.
+\end{itemize}
+
+\section{High-Speed 4:1 Multiplexer and Pre-Driver Chain}
+
+This section details the implementation, architectural design choices, and pre-layout schematic verification of the high-speed 4:1 Multiplexer (MUX) integrated with its cascading pre-driver transmitter chain. The complete data path is evaluated at ultra-high wireline data rates to ensure signal integrity and timing symmetry under Typical-Typical (TT) operating conditions prior to physical layout.
+
+\subsection{Single-Bit Schematic}
+The complete single-bit slice consists of the core 4:1 multiplexer block operating under a dedicated core voltage supply ($V_{DD\_CORE} = 0.8\text{ V}$), followed by a tapered inverter pre-driver chain (`Inverter_pre1` and `Inverter_pre2`) backed by a driver supply voltage ($V_{DD\_DRV} = 0.9\text{ V}$). This multi-stage buffering configuration isolates the high-speed multiplexer node while delivering the required current drive to handle downstream interconnect loading.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{BITTTTTT.png}
+    \caption{Top-level schematic of the single-bit high-speed 4:1 MUX and cascading pre-driver stage topology.}
+    \label{fig:mux_predriver_schematic}
+\end{figure}
+
+\subsection{Pre-Driver Circuit Design and Optimization}
+% Explicitly left blank for your custom final additions
+Our main challenge in this transmitter chain is managing the supply voltage difference between the core multiplexer ($V_{DD\_CORE} = 0.8\text{ V}$) and the final driver stage ($V_{DD\_DRV} = 0.9\text{ V}$). This $100\text{ mV}$ mismatch creates a serious problem for signal integrity: when the MUX output shifts logic states, the lower $0.8\text{ V}$ swing cannot completely turn off the PMOS transistor in the next stage right away. Because the PMOS stays weakly active while the NMOS is already trying to pull down the node, a temporary contention current occurs. This directly distorts the switching thresholds and causes a high amount of Deterministic Jitter (DJ). To minimize this DJ and balance the transition speeds, we intentionally made the NMOS slightly stronger than the PMOS to overpower the weak contention early in the transition.
+
+Architecturally, we could not solve this with a single inverter stage. To drive the heavy $40\text{ fF}$ load at the final output (`VOUT`) at 64 GT/s, a single inverter would have to be physically massive. Making that first stage huge would create a massive input gate capacitance hanging directly off the MUX output node, completely overloading it and ruining the eye quality at the very beginning of the data path. 
+
+To break this bottleneck, we designed a tapered 2-stage pre-driver chain 
+(\texttt{Inverter\_pre1} and \texttt{Inverter\_pre2}) following a strict Fan-out-of-2 (FO2) scaling ratio. The first inverter is sized smaller 
+to keep its input capacitance low, providing a gentle, safe load that the MUX can easily drive without degradation. By keeping the sizing ratio between the stages at a sharp factor of 2, we optimize the delay per stage and avoid overloading any single node. This first stage provides enough intermediate current drive to cleanly switch the larger second inverter, which handles the heavy final output 
+load. This two-stage buffering approach isolates the sensitive MUX node, eliminates the heavy loading penalty, and allows us to control the transistor sizing ratios precisely to squash the supply-induced jitter.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Jitter Budget and Design Targets}
+
+Before evaluating the simulated performance of the integrated pre-driver and multiplexer chain, the design targets must be established in the context of the physical layer standard. Table \ref{tab:pcie6_jitter_budget_MUXPRE} outlines the total standard specifications alongside the localized design targets allocated for this transmitter configuration to ensure full compliance with PCIe 6.0 criteria.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{14pt}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        Jitter Component & Total Standard Spec (ps) & Design Target (Allocated) (fs) \\ \hline
+        Total Jitter (TJ) & 4.00 & 962.5 \\ \hline
+        Deterministic Jitter (DJ) & 1.25 & 437.5 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Jitter Specification and Allocated Design Targets for PCIe 6.0 Compliance}
+    \label{tab:pcie6_jitter_budget_MUXPRE}
+\end{table}
+
+These boundaries serve as the primary verification metrics for the transient and noisy supply simulations detailed in the following sections.
+
+\subsection{Schematic Simulation Results and Performance Evaluation}
+The pre-layout schematic performance of the transmitter slice was verified through comprehensive transient simulations. Figure~\ref{fig:typical_eye_diagram} illustrates the transient eye diagram obtained under Typical-Typical (TT) operating conditions, demonstrating excellent horizontal eye opening and minimal deterministic jitter.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{typical_eye_HP.png}
+    \caption{ transient eye diagram at the output node under Typical-Typical (TT) corner conditions.}
+    \label{fig:typical_eye_diagram}
+\end{figure}
+
+To further verify the structural robustness of the transmitter design, a transient simulation was performed under a noise on both supplies. In this test, both the $0.8\text{ V}$ multiplexer supply ($V_{DD\_CORE}$) and the $0.9\text{ V}$ driver supply ($V_{DD\_DRV}$) were simultaneously subjected to an active $10\text{ mV}_{pp}$ high-frequency supply noise injection. Figure~\ref{fig:typical_noise_eye_diagram} displays the corresponding output eye profile under these simultaneous noise conditions. Despite the severe dual-rail supply noise, the circuit maintains strong vertical opening margins and preserves stable crossing integrity close to the mid-rail point.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{typical with noise.png}
+    \caption{transient eye diagram at the output node under Typical-Typical (TT) conditions with simultaneous $10\text{ mV}_{pp}$ supply noise on both rails.}
+    \label{fig:typical_noise_eye_diagram}
+\end{figure}
+
+To quantify the design margins and signaling quality, Table~\ref{tab:mux_predriver_tt_baseline} summarizes the key signaling specifications measured at the final schematic output node (`VOUT`) under the nominal process corner.
+To quantify the design margins and signaling quality, Table~\ref{tab:mux_predriver_tt_baseline} summarizes the key signaling specifications measured at the final schematic output node (`VOUT`) under the nominal process corner.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{14pt}
+    \begin{tabular}{|l|c|}
+        \hline
+        Specification & Typical (TT) \\ \hline
+        Total Power (mW) & 2.9 \\ \hline
+        Swing (mV) & 900 \\ \hline
+        Eye Width (ps) & 31.1 \\ \hline
+        Eye Crossing (mV) & $\sim$460 \\ \hline
+        Deterministic Jitter (fs) & 155.29 \\ \hline
+        PSIJ at 10 mVpp noise on both supplies (fs) & 279.5 \\ \hline
+        PSIJ (fs/mV) & 27.95 \\ \hline
+        Fall Time (ps) & 4.5 \\ \hline
+        Rise Time (ps) & 4.5 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Typical Simulation Performance Metrics for Integrated Multiplexer and Pre-Driver}
+    \label{tab:mux_predriver_tt_baseline}
+\end{table}
+
+\clearpage
+
+\subsection{Integrated Multiplexer and Pre-Driver PVT Variation Analysis}
+\label{subsec:mux_predriver_corners}
+
+Following the standalone multiplexer characterization, the high-speed transmitter analysis was expanded to evaluate the integrated block, which consists of the multiplexer core and the multi-stage pre-driver logic buffer network. To test the circuit's resilience against worst-case voltage drops and power grid degradation, the entire PVT matrix was characterized under a strict sub-nominal supply configuration representing a -10\% drop on both independent power grids. Specifically, the core multiplexer supply rail was constrained to $V_{DD,core} = 720\text{ mV}$ (down from 800~mV) and the pre-driver logic supply rail was constrained to $V_{DD,drv} = 810\text{ mV}$ (down from 900~mV). 
+
+The integrated block was simulated across four standard process corner permutations: Fast-Fast (FF), Fast-Slow (FS), Slow-Fast (SF), and Slow-Slow (SS). Thermal variations were captured across three temperature boundaries: $T = -40^{\circ}\text{C}$ (cold extreme), $T = 27^{\circ}\text{C}$ (nominal ambient), and $T = 125^{\circ}\text{C}$ (hot junction extreme). To test the system's high-frequency noise immunity, a supply noise ripple of $10\text{ mV}_{pp}$ was injected simultaneously into both the pre-driver and multiplexer power grids. Power Supply Induced Jitter (PSIJ) was extracted by subtracting the clean-supply intrinsic deterministic jitter from the noisy-supply total jitter profile ($PSIJ = TJ - DJ$). This absolute jitter value was then divided by the $10\text{ mV}$ ripple to determine the portably normalized timing sensitivity parameter ($\text{fs/mV}$).
+
+\clearpage
+\subsection*{Sub-Nominal Supply Characterization ($V_{DD,core} = 720\text{ mV}$, $V_{DD,drv} = 810\text{ mV}$)}
+\subsubsection*{PVT Characterization Data and Waveform Analysis}
+
+The quantitative performance matrices and corresponding multi-corner eye diagram captures for the integrated pre-driver and multiplexer block under sub-nominal supply constraints are detailed below.
+
+% ==================================================
+% 1. NOMINAL TEMPERATURE SECTION (27 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 800 & 800 & 800 & 800 \\ \hline
+        Eye Width (ps) & 30.938 & 30.831 & 30.835 & 30.716 \\ \hline
+        Eye Crossing (mV) & $\sim$421 & $\sim$414 & $\sim$402 & $\sim$387 \\ \hline
+        Deterministic Jitter (fs) & 154.504 & 180.563 & 190.389 & 200.089 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 157.791 & 238.484 & 224.801 & 333.867 \\ \hline
+        PSIJ (fs/mV) & 15.779 & 23.848 & 22.480 & 33.387 \\ \hline
+        Total Jitter (fs) & 312.295 & 419.047 & 415.190 & 533.956 \\ \hline
+        Rise Time (ps) & 4.283 & 5.184 & 4.839 & 5.931 \\ \hline
+        Fall Time (ps) & 4.358 & 4.941 & 5.002 & 5.723 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Sub-Nominal Supply Tracks ($V_{DD,core} = 720\text{ mV}$, $V_{DD,drv} = 810\text{ mV}$) and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:integrated_corners_27}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{nominaltemp_eyes.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under sub-nominal supply configurations at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{nominaltemp_eyes_with_noise.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to sub-nominal supply tracks at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_noise}
+\end{figure}
+
+
+
+% ==================================================
+% 2. COLD TEMPERATURE SECTION (-40 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 800 & 800 & 800 & 800 \\ \hline
+        Eye Width (ps) & 30.939 & 30.825 & 30.830 & 30.693 \\ \hline
+        Eye Crossing (mV) & $\sim$420 & $\sim$409 & $\sim$399 & $\sim$378 \\ \hline
+        Deterministic Jitter (fs) & 130.897 & 165.633 & 177.489 & 206.087 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 180.346 & 259.244 & 242.606 & 350.594 \\ \hline
+        PSIJ (fs/mV) & 18.035 & 25.924 & 24.261 & 35.059 \\ \hline
+        Total Jitter (fs) & 311.243 & 424.877 & 420.095 & 556.681 \\ \hline
+        Rise Time (ps) & 4.029 & 4.846 & 4.492 & 5.458 \\ \hline
+        Fall Time (ps) & 4.023 & 4.523 & 4.548 & 5.174 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Sub-Nominal Supply Tracks ($V_{DD,core} = 720\text{ mV}$, $V_{DD,drv} = 810\text{ mV}$) and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:integrated_corners_40}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{coldtemp_eyes.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under sub-nominal supply configurations at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{coldtemp_eyes_with_noise.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to sub-nominal supply tracks at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_noise}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 3. HOT TEMPERATURE SECTION (125 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 800 & 800 & 800 & 800 \\ \hline
+        Eye Width (ps) & 30.916 & 30.837 & 30.850 & 30.790 \\ \hline
+        Eye Crossing (mV) & $\sim$417 & $\sim$416 & $\sim$399 & $\sim$391 \\ \hline
+        Deterministic Jitter (fs) & 209.664 & 231.229 & 226.404 & 201.028 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 124.682 & 181.859 & 173.532 & 258.985 \\ \hline
+        PSIJ (fs/mV) & 12.468 & 18.186 & 17.353 & 25.899 \\ \hline
+        Total Jitter (fs) & 334.346 & 413.088 & 399.936 & 460.013 \\ \hline
+        Rise Time (ps) & 4.770 & 5.777 & 5.427 & 6.626 \\ \hline
+        Fall Time (ps) & 4.968 & 5.658 & 5.739 & 6.611 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Sub-Nominal Supply Tracks ($V_{DD,core} = 720\text{ mV}$, $V_{DD,drv} = 810\text{ mV}$) and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:integrated_corners_125}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{hottemp_eyes.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under sub-nominal supply configurations at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{hottemp_eyes_with_noise.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to sub-nominal supply tracks at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_noise}
+\end{figure}
+
+\clearpage
+
+\subsubsection*{Performance Analysis and Discussion}
+
+Integrating the active pre-driver buffer stages with the core transmission gate multiplexer demonstrates how the full transmitter chain performs under a uniform -10\% supply voltage drop.
+
+\textbf{1. Pre-Driver Driving Strength and Edge Rate Sharpening:} \\
+The addition of the active logic buffers significantly changes the transient edge profiles of the multiplexer. In the isolated multiplexer analysis, edge transitions were limited by the switch's internal RC time constants. However, the simulation data confirms that the integrated pre-driver stages supply high charging currents that rapidly toggle the capacitive gate nodes, even on lowered supply rails. 
+
+At room temperature ($27^{\circ}\text{C}$), this results in an exceptionally sharp rise time ($t_{rise}$) of 4.283~ps and a fall time ($t_{fall}$) of 4.358~ps in the Fast-Fast (FF) corner. Even under process degradation in the Slow-Slow (SS) corner, the active drive path restricts the rise and fall times to 5.931~ps and 5.723~ps, respectively. This sharpening minimizes intersymbol interference (ISI) and stabilizes the horizontal eye opening across all PVT variations.
+
+\textbf{2. Asymmetric Corner Drift and Eye Crossing Behavior:} \\
+The eye crossing point displays distinct shifts when tracking across the combined active stages under degraded supply rails. Under room temperature clean-supply conditions, the crossing center shifts from $\sim$421~mV in the FF corner down to $\sim$387~mV in the SS corner. This variation occurs due to the unequal threshold voltage ($V_{th}$) drift between the PMOS pull-up and NMOS pull-down networks within the pre-driver logic gates. 
+
+In the slow process configurations, the PMOS current capability degrades more rapidly than the NMOS branch. This adds a minor delay to the rising edges relative to the falling edges, pushing the eye intersection point below the ideal mid-rail center. This edge mismatch improves slightly at cold temperatures ($T = -40^{\circ}\text{C}$) due to enhanced carrier velocity, but increases at high temperatures ($T = 125^{\circ}\text{C}$), where the crossing center drops to its lowest mark of $\sim$391~mV in the SS corner.
+
+\textbf{3. Pre-Driver Noise Sensitivities and Jitter Accumulation:} \\
+Although the pre-driver successfully sharpens the signal transition edges, the addition of active logic gates introduces extra timing uncertainty onto the compressed supply rails. Because standard CMOS logic gates switch based on exact supply rail levels, any voltage noise directly changes their switching thresholds. This variation shifts the propagation delay of the clock signals, introducing phase noise directly into the multiplexer control paths. 
+
+At $27^{\circ}\text{C}$, this behavior results in an absolute total jitter (TJ) of 312.295~fs in the FF corner, which scales up to 533.956~fs under slow process conditions in the SS corner. This performance trade-off demonstrates that while the pre-driver sharpens output edge rates, its active architecture increases the overall jitter accumulation of the clock distribution network.
+\clearpage
+\textbf{4. Thermal Sensitivity of Power Supply Noise Rejection:} \\
+The power supply noise sensitivity shows clear temperature-dependent trends across the simulated matrix under the -10\% drop tracks. At room temperature ($27^{\circ}\text{C}$), the normalized sensitivity starts at a robust 15.779~fs/mV in the FF corner and scales up to 33.387~fs/mV in the slow SS corner. 
+
+At the cold extreme ($T = -40^{\circ}\text{C}$), the lower temperature minimizes lattice scattering and increases device transconductance ($g_m$). This higher gain creates steeper current variations ($\Delta I/\Delta t$) when supply ripples occur, causing the normalized sensitivity to peak at 35.059~fs/mV in the cold SS corner (total jitter of 556.681~fs). 
+
+Conversely, at the hot extreme ($T = 125^{\circ}\text{C}$), increased lattice scattering reduces carrier mobility and limits peak transient current spikes. This self-compensating effect lowers the normalized sensitivity to 25.899~fs/mV in the high-temperature SS corner, keeping the total jitter bounded at 460.013~fs. 
+
+To determine the maximum noise tolerance of the circuit, the allocated design target can be evaluated against the simulated noise sensitivity. Based on the target allocation of 962.5~fs, dividing this budget by the room temperature worst-case sensitivity ($962.5\text{ fs} / 35.059\text{ fs/mV}$) gives an estimated maximum peak-to-peak supply noise voltage of approximately $27.45\text{ mV}_{pp}$. This demonstrates that even under severe -10\% voltage drop conditions, the circuit provides enough headroom to tolerate an expanded noise ceiling on both rails. 
+
+By calculating the available timing window as the remainder of the unit interval subtracted by the total jitter ($t_{width} = 31.25\text{ ps} - TJ$), the horizontal margin stays highly robust across the entire operational boundaries. In all evaluated configurations, the integrated transmitter chain satisfies the strict timing budgets required by the PCIe 6.0 physical layer standard with comfortable margins.
+
+
+\subsection*{Super-Nominal Supply Characterization ($V_{DD,core} = 880\text{ mV}$, $V_{DD,drv} = 990\text{ mV}$)}
+\label{subsec:mux_predriver_supernominal}
+
+To evaluate the integrated circuit's behavior under voltage surge conditions, a second comprehensive PVT analysis was executed along a super-nominal supply track representing a uniform $+10\%$ increase. Under this test setup, the core multiplexer voltage was boosted to $V_{DD,core} = 880\text{ mV}$ (up from 800~mV) and the active pre-driver logic buffer supply was scaled to $V_{DD,drv} = 990\text{ mV}$ (up from 900~mV). 
+
+The tracking parameters were evaluated across all four process configurations (FF, FS, SF, SS) and three temperature steps ($-40^{\circ}\text{C}$, $27^{\circ}\text{C}$, and $125^{\circ}\text{C}$) under a concurrent $10\text{ mV}_{pp}$ high-frequency noise ripple injection on both power domains. The exact performance parameters, eye diagrams, and physical analysis for this supply track are detailed below.
+
+\subsubsection*{PVT Characterization Data and Waveform Analysis}
+
+% ==================================================
+% 1. NOMINAL TEMPERATURE SECTION (27 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 3.691 & 3.478 & 3.409 & 3.299 \\ \hline
+        Swing (mV) & 980 & 980 & 980 & 980 \\ \hline
+        Eye Width (ps) & 31.073 & 31.011 & 31.021 & 30.944 \\ \hline
+        Eye Crossing (mV) & $\sim$514 & $\sim$520 & $\sim$494 & $\sim$493 \\ \hline
+        Deterministic Jitter (fs) & 123.649 & 147.446 & 148.570 & 178.082 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 52.935 & 91.505 & 80.900 & 127.567 \\ \hline
+        PSIJ (fs/mV) & 5.294 & 9.151 & 8.090 & 12.757 \\ \hline
+        Total Jitter (fs) & 176.584 & 238.951 & 229.470 & 305.649 \\ \hline
+        Rise Time (ps) & 3.567 & 4.196 & 3.950 & 4.706 \\ \hline
+        Fall Time (ps) & 3.722 & 4.160 & 4.189 & 3.437 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Block Performance Corners at Super-Nominal Supply Tracks and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:super_corners_27}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Nominaltemprature_clean(supervdd).png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under super-nominal supply configurations at $T = 27^{\circ}\text{C}$. Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:super_eyes_27_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Nominaltemprature_Noisy(supervdd).png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to super-nominal supply tracks at $T = 27^{\circ}\text{C}$. Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:super_eyes_27_noise}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 2. COLD TEMPERATURE SECTION (-40 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 3.455 & 3.299 & 3.230 & 3.166 \\ \hline
+        Swing (mV) & 980 & 980 & 980 & 980 \\ \hline
+        Eye Width (ps) & 31.083 & 31.028 & 31.031 & 30.955 \\ \hline
+        Eye Crossing (mV) & $\sim$522 & $\sim$529 & $\sim$501 & $\sim$501 \\ \hline
+        Deterministic Jitter (fs) & 107.602 & 128.298 & 132.745 & 157.111 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 59.292 & 93.842 & 86.723 & 137.737 \\ \hline
+        PSIJ (fs/mV) & 5.929 & 9.384 & 8.672 & 13.774 \\ \hline
+        Total Jitter (fs) & 166.894 & 222.140 & 219.468 & 294.848 \\ \hline
+        Rise Time (ps) & 3.361 & 3.933 & 3.695 & 4.365 \\ \hline
+        Fall Time (ps) & 3.437 & 3.815 & 3.816 & 4.263 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Block Performance Corners at Super-Nominal Supply Tracks and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:super_corners_40}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Coldtemprature_clean(supervdd).png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under super-nominal supply configurations at $T = -40^{\circ}\text{C}$. Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:super_eyes_40_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Coldtemprature_Noisy(supervdd).png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to super-nominal supply tracks at $T = -40^{\circ}\text{C}$. Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:super_eyes_40_noise}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 3. HOT TEMPERATURE SECTION (125 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 4.478 & 4.024 & 3.965 & 3.673 \\ \hline
+        Swing (mV) & 980 & 980 & 980 & 980 \\ \hline
+        Eye Width (ps) & 31.040 & 30.989 & 30.998 & 30.938 \\ \hline
+        Eye Crossing (mV) & $\sim$503 & $\sim$509 & $\sim$483 & $\sim$484 \\ \hline
+        Deterministic Jitter (fs) & 166.648 & 188.919 & 187.436 & 210.837 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 43.354 & 72.445 & 65.000 & 101.581 \\ \hline
+        PSIJ (fs/mV) & 4.335 & 7.245 & 6.500 & 10.158 \\ \hline
+        Total Jitter (fs) & 210.002 & 261.364 & 252.436 & 312.418 \\ \hline
+        Rise Time (ps) & 4.006 & 4.738 & 4.505 & 5.361 \\ \hline
+        Fall Time (ps) & 4.276 & 4.799 & 4.836 & 4.703 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Block Performance Corners at Super-Nominal Supply Tracks and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:super_corners_125}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hottemprature_clean(supervdd).png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under super-nominal supply configurations at $T = 125^{\circ}\text{C}$. Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:super_eyes_125_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Hottemprature_Noisy(supervdd).png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to super-nominal supply tracks at $T = 125^{\circ}\text{C}$. Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:super_eyes_125_noise}
+\end{figure}
+
+\clearpage
+
+\subsubsection*{Performance Analysis and Discussion}
+
+Operating the transmitter block under the boosted super-nominal supply track highlights clear physical improvements in timing alongside expected electrothermal power increases.
+
+\textbf{1. Overdrive Acceleration and Transition Time Sharpening:} \\
+Boosting the supply tracks by $+10\%$ significantly increases the gate overdrive voltage ($V_{GS} - V_{th}$) across both the active pre-driver stages and the core switching fabric. This extra voltage drive drastically cuts down channel resistance, allowing the buffers to charge up node capacitances at a much faster rate. At room temperature ($27^{\circ}\text{C}$), the rise and fall transition times under the Fast-Fast (FF) corner drop to an ultra-sharp 3.567~ps and 3.722~ps. Even under heavily degraded slow process trends in the Slow-Slow (SS) corner, the rise time drops from its sub-nominal 5.931~ps baseline down to 4.706~ps. This rapid transition behavior keeps the horizontal eye width exceptionally wide, exceeding 30.938~ps across every single process, voltage, and temperature variation evaluated.
+
+\textbf{2. High-Voltage Headroom Expansion and Jitter Reduction:} \\
+The major advantage of the super-nominal tracking matrix is the substantial reduction in both intrinsic and supply-induced timing uncertainty. The higher supply voltage raises the signal-to-noise ratio at the switching thresholds of the pre-driver logic gates, making the clock edge transitions much more stable against noise. At standard room temperature, the baseline deterministic jitter in the slow SS corner drops down to 178.082~fs. More importantly, the absolute supply noise vulnerability is suppressed significantly. The normalized PSIJ parameter drops to an ultra-robust 5.294~fs/mV under the FF corner, and reaches its worst-case ambient limit at just 12.757~fs/mV in the slow SS corner, resulting in an absolute total jitter of only 305.649~fs.
+
+\textbf{3. Current Demands and Power Scaling:} \\
+While the boosted supply track improves timing performance, it also leads to an increase in total power dissipation across the circuit. Because dynamic power consumption follows a square law relationship with operating voltage, boosting the supply grids increases the charging and discharging current spikes during transitions. Under ambient conditions, the total power consumption ranges between 3.299~mW (SS) and 3.691~mW (FF). This current consumption climbs significantly at the high thermal junction limit ($T = 125^{\circ}\text{C}$), peaking at 4.478~mW in the active FF corner due to the combination of enhanced device transconductance and heightened sub-threshold leakage currents.
+
+\textbf{4. Thermal Sensitivity and Maximum Supply Noise Headroom:} \\
+The interaction of high supply overdrive and temperature variations exhibits consistent, predictable physical trends across the matrix. At the cold extreme ($T = -40^{\circ}\text{C}$), reduced lattice scattering increases device transconductance, making the pre-driver gates switch even faster ($t_{rise} = 3.361\text{ ps}$ in cold FF). However, this high gain makes the thresholds more sensitive to supply ripple, shifting the peak normalized noise sensitivity to 13.774~fs/mV in the cold SS corner. 
+
+Conversely, high thermal junctions damp these current spikes, lowering the worst-case sensitivity to 10.158~fs/mV at $125^{\circ}\text{C}$. Following our standard evaluation strategy, we can check the circuit's maximum noise resilience by dividing our allocated design target of 962.5~fs by the room temperature worst-case sensitivity ($962.5\text{ fs} / 12.757\text{ fs/mV}$). This calculation indicates that under boosted voltage tracks, the transmitter can tolerate an exceptional peak-to-peak supply noise voltage of up to approximately $75.45\text{ mV}_{pp}$ on both rails before exhausting its timing budget. This confirms that the integrated transmitter architecture satisfies PCIe 6.0 physical layer jitter specifications with vast design margins.
+\clearpage
+\subsection*{Sub-Nominal MUX with Super-Nominal Pre-Driver Characterization ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$)}
+\subsubsection*{PVT Characterization Data and Waveform Analysis}
+
+The quantitative performance matrices and corresponding multi-corner eye diagram captures for the integrated pre-driver and multiplexer block under mixed-supply constraints are detailed below.
+
+% ==================================================
+% 1. NOMINAL TEMPERATURE SECTION (27 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 3.101 & 2.831 & 3.384 & 2.978 \\ \hline
+        Eye Width (ps) & 31.073 & 31.052 & 31.038 & 31.043 \\ \hline
+        Eye Crossing (mV) & $\sim$171 & $\sim$152 & $\sim$135 & $\sim$108 \\ \hline
+        Deterministic Jitter (fs) & 176.809 & 198.395 & 211.654 & 206.971 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 110.843 & 173.022 & 153.607 & 252.293 \\ \hline
+        PSIJ (fs/mV) & 11.084 & 17.302 & 15.361 & 25.229 \\ \hline
+        Total Jitter (fs) & 287.652 & 371.417 & 365.261 & 459.264 \\ \hline
+        Rise Time (ps) & 4.934 & 5.175 & 6.602 & 5.643 \\ \hline
+        Fall Time (ps) & 4.321 & 4.510 & 5.757 & 4.969 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Mixed Supply Tracks ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:integrated_corners_27}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUB_nmoinal_temprature.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under mixed supply configurations at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUB_nmoinal_temprature_withsupplynoise.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to mixed supply tracks at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_noise}
+\end{figure}
+
+% ==================================================
+% 2. COLD TEMPERATURE SECTION (-40 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 2.922 & 3.676 & 3.135 & 2.898 \\ \hline
+        Eye Width (ps) & 31.098 & 31.065 & 31.049 & 31.030 \\ \hline
+        Eye Crossing (mV) & $\sim$168 & $\sim$146 & $\sim$130 & $\sim$101 \\ \hline
+        Deterministic Jitter (fs) & 151.765 & 185.372 & 200.665 & 220.228 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 123.063 & 182.331 & 170.526 & 266.153 \\ \hline
+        PSIJ (fs/mV) & 12.306 & 18.233 & 17.053 & 26.615 \\ \hline
+        Total Jitter (fs) & 274.828 & 367.703 & 371.191 & 486.381 \\ \hline
+        Rise Time (ps) & 4.445 & 5.709 & 4.858 & 4.553 \\ \hline
+        Fall Time (ps) & 4.005 & 4.998 & 4.387 & 3.946 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Mixed Supply Tracks ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:integrated_corners_40}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUB_cold_temprature.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under mixed supply configurations at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUB_cold_temprature_withsupplynoise.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to mixed supply tracks at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_noise}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 3. HOT TEMPERATURE SECTION (125 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 4.138 & 3.345 & 3.070 & 3.716 \\ \hline
+        Eye Width (ps) & 30.923 & 30.910 & 30.902 & 30.881 \\ \hline
+        Eye Crossing (mV) & $\sim$178 & $\sim$166 & $\sim$143 & $\sim$124 \\ \hline
+        Deterministic Jitter (fs) & 226.884 & 239.974 & 248.258 & 268.572 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 82.967 & 137.160 & 126.037 & 187.363 \\ \hline
+        PSIJ (fs/mV) & 8.297 & 13.716 & 12.604 & 18.736 \\ \hline
+        Total Jitter (fs) & 309.851 & 377.134 & 374.295 & 455.935 \\ \hline
+        Rise Time (ps) & 4.961 & 4.285 & 3.953 & 5.706 \\ \hline
+        Fall Time (ps) & 4.438 & 3.887 & 3.567 & 5.066 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Mixed Supply Tracks ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:integrated_corners_125}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUB_hot_temprature.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under mixed supply configurations at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUB_hot_temprature_withsupplynoise.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to mixed supply tracks at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_noise}
+\end{figure}
+
+\clearpage
+
+\subsubsection*{Performance Analysis and Discussion}
+
+Integrating the active pre-driver buffer stages with the core transmission gate multiplexer demonstrates how the full transmitter chain performs under extreme localized mixed-supply voltage strains.
+
+\begin{itemize}
+    \item \textbf{Pre-Driver Driving Strength and Edge Rate Sharpening:} The active logic buffers overcome switch internal RC delay limits by supplying high charging currents that rapidly toggle the capacitive gate nodes. At $27^{\circ}\text{C}$, this sharpens transition edge rates to $t_{rise} = 4.934\text{ ps}$ / $t_{fall} = 4.321\text{ ps}$ in the FF corner, and restrains them to $5.643\text{ ps}$ / $4.969\text{ ps}$ in the slow SS corner, successfully suppressing intersymbol interference (ISI).
+    
+    \item \textbf{Asymmetric Corner Drift and Eye Crossing Behavior:} Under unequal supply rails, the output eye crossing compresses significantly down to a low $\sim$101~mV to $\sim$178~mV range. This severe downward shift occurs because the first inverter stage within the pre-driver features a dominant PMOS branch over its NMOS counterpart; when driven with a sub-nominal $720\text{ mV}$ multiplexer swing, the un-discharged interface node activates the PMOS prematurely, heavily skewing the internal switching thresholds toward ground.
+    
+    \item \textbf{Pre-Driver Noise Sensitivities and Jitter Accumulation:} While sharpening edges, the active CMOS logic gates increase vulnerability to power grid ripples, since voltage noise directly alters their switching thresholds and clock propagation delays. At $27^{\circ}\text{C}$, this timing uncertainty leads to an absolute total jitter (TJ) accumulation of $287.652\text{ fs}$ in the fast FF corner, which scales up to $459.264\text{ fs}$ under slow process tracking in the SS corner.
+    
+    \item \textbf{Thermal Sensitivity of Power Supply Noise Rejection:} Extracting the Power Supply Induced Jitter ($PSIJ = TJ - DJ$) uncovers distinct thermal dependencies across the matrix. At cold extremes ($T = -40^{\circ}\text{C}$), minimized lattice scattering enhances device transconductance ($g_m$), creating steep current variations ($\Delta I/\Delta t$) that peak the normalized sensitivity at $26.615\text{ fs/mV}$ in the SS corner. Conversely, hot extremes ($T = 125^{\circ}\text{C}$) lower carrier mobility to provide a self-compensating reduction in sensitivity down to $18.736\text{ fs/mV}$, maintaining structurally robust horizontal eye width margins ($t_{width} = 31.25\text{ ps} - DJ$).
+\end{itemize}
+
+\clearpage
+\subsection*{Super-Nominal MUX with Sub-Nominal Pre-Driver Characterization ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$)}
+\subsubsection*{PVT Characterization Data and Waveform Analysis}
+
+The quantitative performance matrices and corresponding multi-corner eye diagram captures for the integrated pre-driver and multiplexer block under mixed-supply constraints are detailed below.
+
+% ==================================================
+% 1. NOMINAL TEMPERATURE SECTION (27 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 3.300 & 3.143 & 2.993 & 2.282 \\ \hline
+        Eye Width (ps) & 31.131 & 31.110 & 31.109 & 31.067 \\ \hline
+        Eye Crossing (mV) & $\sim$616 & $\sim$619 & $\sim$623 & $\sim$629 \\ \hline
+        Deterministic Jitter (fs) & 119.248 & 140.406 & 140.960 & 182.905 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 93.415 & 153.541 & 132.090 & 198.151 \\ \hline
+        PSIJ (fs/mV) & 9.342 & 15.354 & 13.209 & 19.815 \\ \hline
+        Total Jitter (fs) & 212.663 & 293.947 & 273.050 & 381.056 \\ \hline
+        Rise Time (ps) & 4.726 & 4.438 & 5.176 & 5.892 \\ \hline
+        Fall Time (ps) & 4.809 & 4.413 & 5.514 & 6.399 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Mixed Supply Tracks ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:integrated_corners_27}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUPERNOMINAL_nominal_temprature.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under mixed supply configurations at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUPERNOMINAL_nominal_temprature_withnoisysupply.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to mixed supply tracks at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_noise}
+\end{figure}
+
+% ==================================================
+% 2. COLD TEMPERATURE SECTION (-40 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 2.893 & 3.991 & 2.997 & 2.893 \\ \hline
+        Eye Width (ps) & 31.148 & 31.124 & 31.120 & 31.090 \\ \hline
+        Eye Crossing (mV) & $\sim$618 & $\sim$624 & $\sim$625 & $\sim$632 \\ \hline
+        Deterministic Jitter (fs) & 101.910 & 125.819 & 130.469 & 159.687 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 104.755 & 159.909 & 141.479 & 217.355 \\ \hline
+        PSIJ (fs/mV) & 10.476 & 15.991 & 14.148 & 21.736 \\ \hline
+        Total Jitter (fs) & 206.665 & 285.728 & 271.948 & 377.042 \\ \hline
+        Rise Time (ps) & 3.672 & 5.892 & 5.284 & 4.909 \\ \hline
+        Fall Time (ps) & 3.912 & 6.399 & 5.600 & 5.094 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Mixed Supply Tracks ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:integrated_corners_40}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUPERNOMINAL_cold_temprature.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under mixed supply configurations at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUPERNOMINAL_cold_temprature_withnoisysupply.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to mixed supply tracks at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_noise}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 3. HOT TEMPERATURE SECTION (125 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Total Power (mW) & 3.080 & 2.933 & 3.534 & 3.321 \\ \hline
+        Eye Width (ps) & 31.089 & 31.063 & 31.070 & 31.047 \\ \hline
+        Eye Crossing (mV) & $\sim$606 & $\sim$610 & $\sim$615 & $\sim$618 \\ \hline
+        Deterministic Jitter (fs) & 161.424 & 186.944 & 180.278 & 202.569 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 69.164 & 121.643 & 114.449 & 174.598 \\ \hline
+        PSIJ (fs/mV) & 6.916 & 12.164 & 11.445 & 17.460 \\ \hline
+        Total Jitter (fs) & 230.588 & 308.587 & 294.727 & 377.167 \\ \hline
+        Rise Time (ps) & 4.256 & 4.008 & 4.734 & 3.884 \\ \hline
+        Fall Time (ps) & 4.878 & 4.442 & 5.578 & 4.246 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Mixed Supply Tracks ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:integrated_corners_125}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUPERNOMINAL_hot_temprature.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under mixed supply configurations at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{MUX_SUPERNOMINAL_hot_temprature_withnoisysupply.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to mixed supply tracks at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_noise}
+\end{figure}
+
+\clearpage
+
+\subsubsection*{Performance Analysis and Discussion}
+
+Integrating the active pre-driver buffer stages with the core transmission gate multiplexer demonstrates how the full transmitter chain performs under extreme localized mixed-supply voltage strains.
+
+\textbf{1. Pre-Driver Driving Strength and Edge Rate Sharpening:} \\
+The addition of the active logic buffers significantly changes the transient edge profiles of the multiplexer. In the isolated multiplexer analysis, edge transitions were limited by the switch's internal RC time constants. However, the simulation data confirms that the integrated pre-driver stages supply high charging currents that rapidly toggle the capacitive gate nodes, even on lowered supply rails. At room temperature ($27^{\circ}\text{C}$), this results in a sharp rise time ($t_{rise}$) of 4.726~ps and a fall time ($t_{fall}$) of 4.809~ps in the Fast-Fast (FF) corner. Even under process degradation in the Slow-Slow (SS) corner, the active drive path restricts the rise and fall times to 5.892~ps and 6.399~ps, respectively. This sharpening minimizes intersymbol interference (ISI) and stabilizes the horizontal eye opening across all PVT variations.
+
+\textbf{2. Asymmetric Corner Drift and Eye Crossing Behavior:} \\
+The eye crossing point displays distinct shifts when tracking across the combined active stages under unequal supply rails. Across all process corners, the output eye crossing shifts significantly upward, settling into an elevated voltage range of $\sim$606~mV to $\sim$632~mV. This severe upward shift occurs because the first inverter stage within the pre-driver cell has an extremely dominant NMOS transistor relative to its PMOS branch. When the multiplexer core operates at a super-nominal supply rail of $880\text{ mV}$ while the pre-driver chain runs at a sub-nominal $810\text{ mV}$, the high voltage swing arriving from the multiplexer over-drives the input terminal. The dominant NMOS current branch activates exceptionally fast during transitions, pulling down the interface node prematurely and forcing the subsequent staging circuitry to snap high earlier in the cycle. This strong NMOS pull-down behavior skews the vertical threshold tracking heavily upward.
+
+\textbf{3. Pre-Driver Noise Sensitivities and Jitter Accumulation:} \\
+Although the pre-driver successfully sharpens the signal transition edges, the addition of active logic gates introduces extra timing uncertainty onto the compressed supply rails. Because standard CMOS logic gates switch based on exact supply rail levels, any voltage noise directly changes their switching thresholds. This variation shifts the propagation delay of the clock signals. At $27^{\circ}\text{C}$, this behavior results in an absolute total jitter (TJ) of 212.663~fs in the FF corner, which scales up to 381.056~fs under slow process conditions in the SS corner. This performance trade-off demonstrates that while the pre-driver sharpens output edge rates, its active architecture increases the overall jitter accumulation of the clock distribution network.
+
+\textbf{4. Thermal Sensitivity of Power Supply Noise Rejection:} \\
+The power supply noise sensitivity shows clear temperature-dependent trends across the simulated matrix. To isolate the Power Supply Induced Jitter (PSIJ) caused by high-frequency power grid perturbations, the clean intrinsic deterministic jitter is subtracted from the noisy total jitter ($PSIJ = TJ - DJ$). At room temperature ($27^{\circ}\text{C}$), the normalized sensitivity starts at a robust 9.342~fs/mV in the FF corner and scales up to 19.815~fs/mV in the slow SS corner. At the cold extreme ($T = -40^{\circ}\text{C}$), the lower temperature minimizes lattice scattering and increases device transconductance ($g_m$). This higher gain creates steeper current variations ($\Delta I/\Delta t$) when supply ripples occur, causing the normalized sensitivity to peak at 21.736~fs/mV in the cold SS corner (total jitter of 377.042~fs). Conversely, at the hot extreme ($T = 125^{\circ}\text{C}$), increased lattice scattering reduces carrier mobility and limits peak transient current spikes. This self-compensating effect lowers the normalized sensitivity to 17.460~fs/mV in the high-temperature SS corner, keeping the total jitter bounded at 377.167~fs. By calculating the available horizontal eye width window directly as the remainder of the unit interval subtracted by the deterministic jitter load ($t_{width} = 31.25\text{ ps} - DJ$), the opening margins stay highly uniform and structurally robust across the entire range of functional limits.
+
+\textbf{ Worst-Case Power Supply Noise Tolerance and Compliance Target:} \\
+To evaluate the absolute structural reliability of the serialization channel, the maximum permissible peak-to-peak power supply noise voltage was calculated against the tightest jitter budgets across all evaluation runs. The allocation target dictates a strict maximum limit of $962.5\text{ fs}$ for the total noise induced overhead. 
+
+Operating under the most severe operational stress environment—defined by the sub-nominal core voltage track at low temperature extreme ($-40^\circ\text{C}$, SS process corner)—the circuit exhibits its peak supply noise sensitivity of $35.059\text{ fs/mV}$. 
+
+By evaluating the design budget allocation against this worst-case extracted sensitivity coefficient:
+$$V_{noise,max} = \frac{\text{Jitter Allocation Target}}{\text{Peak Operational Sensitivity}} = \frac{962.5\text{ fs}}{35.059\text{ fs/mV}} \approx 27.45\text{ mV}_{pp}$$
+
+This assessment demonstrates that under the worst-case combination of environmental chilling and supply drops, the transmitter channel guarantees enough operational margin to comfortably tolerate a high power grid noise ceiling of up to $27.45\text{ mV}_{pp}$ on both supply rails while satisfying the strict timing margins demanded by the PCIe 6.0 physical layer standards.
+
+\clearpage
+
+\subsection{Characterization of the DAC-Based MUX+Pre-Driver Bits}
+\label{subsec:dac_based_mux_predriver_bits}
+To achieve strict output monotonicity and eliminate the risk of non-monotonic behavior from random process mismatches, the transmitter architecture uses a 2-to-3 thermometer-to-binary decoding scheme. This segmentation directly handles high-speed data serialization within the integrated multiplexer and pre-driver stages, which then outputs the 8 separate bits that feed into the final driver stage. Because this work focuses strictly on the serialization and pre-driving stages, this section documents the standalone performance of these 8 DAC-based MUX+Pre-Driver bit paths.
+
+To verify signal integrity and timing matching before these signals reach the final driver stage, high-speed transient simulations were performed independently on each bit path. These lines, designated as Bit Index VOUT0 through VOUT7, represent the independent bit paths of the MUX+Pre-Driver block. The characterization was conducted under nominal Typical-Typical (TT) operating conditions with a target logic voltage rail of $V_{DD2} = 900\text{ mV}$. The transition edge rates, propagation delays, and clean-supply deterministic jitter (DJ) for each bit are summarized below, followed by the transient eye diagram captures.
+
+\subsubsection*{Dynamic Performance Across the MUX+Pre-Driver Bits}
+
+The transient performance metrics, including the rise times, fall times, internal propagation delay parameters ($T_{pd}$), and clean-supply deterministic jitter (DJ) fields for each bit line are organized below.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{12pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Bit index & Rise Time (ps) & Fall Time (ps) & Propagation Delay $T_{pd}$ (ps) & DJ (fs) \\ \hline
+        VOUT0 & 4.4 & 4.3 & 9.1 & 181.4 \\ \hline
+        VOUT1 & 4.4 & 4.4 & 9.1 & 155.51 \\ \hline
+        VOUT2 & 4.4 & 4.4 & 9.2 & 77 \\ \hline
+        VOUT3 & 4.4 & 4.4 & 9.2 & 80 \\ \hline
+        VOUT4 & 4.4 & 4.4 & 9.2 & 93 \\ \hline
+        VOUT5 & 4.4 & 4.4 & 9.2 & 93 \\ \hline
+        VOUT6 & 4.4 & 4.4 & 9.2 & 93 \\ \hline
+        VOUT7 & 4.4 & 4.4 & 9.2 & 93 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Dynamic Performance Comparison and Timing Skew Across the 8 DAC-Based MUX+Pre-Driver Bits}
+    \label{tab:mux_predriver_dac_based_metrics}
+\end{table}
+\clearpage
+
+\subsubsection*{Performance Analysis and Discussion}
+\textbf{1. Transition Edge Rate and Slew Uniformity:} \\
+The bits show a highly uniform response in their transition shapes through the MUX+Pre-Driver paths. The rise times match perfectly across all bits, holding exactly at 4.4~ps. This identical behavior ensures that the rising charging slopes switch together without introducing edge-rate mismatches between the bits. 
+
+The fall times are also very well-balanced, remaining at 4.4~ps for VOUT1 through VOUT7, and dropping slightly to 4.3~ps for VOUT0. This clean symmetry between the edges minimizes data-dependent Jitter at the Driver's Output.
+
+\textbf{2. Propagation Delay and Bit-to-Bit Timing Skew:} \\
+The absolute propagation delays ($T_{pd}$) across the separate bit paths track very closely through the block. The transmission delay is 9.1~ps for VOUT0 and VOUT1, and shifts by a tiny fraction to 9.2~ps for VOUT2 through VOUT7. The maximum timing skew ($\Delta T_{pd,max}$) across these 8 bits is strictly bounded to just:
+$$9.2\text{ ps} - 9.1\text{ ps} = 0.1\text{ ps} = 100\text{ fs}$$
+
+This minimal timing skew is highly beneficial for high-speed operation. Keeping the arrival times of all bits matched within a 100~fs window across the MUX+Pre-Driver stages prevents timing mismatches during simultaneous switching, which suppresses Determinstic jitter at Driver's output.
+
+\textbf{3. Deterministic Jitter Profiling:} \\
+The deterministic jitter (DJ) values extracted from the clean-supply eye diagrams show wide horizontal eye openings for the bits. The baseline switching path shows a peak DJ of 181.4~fs on the VOUT0 line, while dropping down to its lowest limit of 77~fs on the VOUT2 line. 
+
+Bits VOUT4 through VOUT7 exhibit identical jitter behavior at 93~fs, proving highly consistent replication across the layout blocks. Because the jitter on all lines stays well below our budget, the horizontal eye width stays wide and robust. This confirms that each bit path in this DAC-based MUX+Pre-Driver configuration successfully delivers clean bit patterns to the final output stage.
+
+\clearpage
+
+\subsection{Power Dissipation and Differential Scaling Analysis}
+\label{subsec:power_dissipation}
+
+To evaluate the thermal profile and efficiency of the DAC-based MUX+Pre-Driver block, power consumption metrics were extracted under nominal Typical-Typical (TT) operating conditions. Because the high-speed serialized data paths are implemented using a fully differential architecture to ensure noise immunity and common-mode rejection, the power consumption must be analyzed for both single-ended and differential configurations. 
+
+The single-ended power dissipation data was directly measured from the transient simulation testbench for both the core multiplexer gates and the active pre-driver logic buffer network. Since the differential transmitter slice runs two matched, complementary switching paths simultaneously, the definitive differential power figures are calculated by scaling the single-ended baseline measurements by a factor of two ($P_{diff} = 2 \times P_{se}$). Table \ref{tab:power_metrics} organizes the single-ended and scaled differential power figures for each active block.
+
+\subsubsection*{Power Consumption Summary Table}
+
+The single-ended simulation readouts alongside the scaled differential power estimations for the active blocks are detailed below.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{11pt}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        Circuit Block Component & Single-Ended Power (mW) & Differential Power (mW) \\ \hline
+        Multiplexer Core (MUX\_POWER) & 4.06 & 8.12 \\ \hline
+        Pre-Driver Buffer Network & 2.2 & 4.4 \\ \hline
+        Total Block Power & 6.26 & 12.52 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Single-Ended and Scaled Differential Power Performance for the DAC-Based MUX+Pre-Driver Circuitry}
+    \label{tab:power_metrics}
+\end{table}
+\clearpage
+
+\subsection{Multi-Bit Performance Characterization Across Symmetric Supply Corners}
+\label{subsec:symmetric_supply_multibit_corners}
+
+To evaluate the architectural robustness and bit-to-bit matching of the integrated multiplexer and pre-driver stages under extreme environmental variations, comprehensive simulations were conducted across all process corners. This section details the performance under balanced voltage drops and supply boosts across three temperature regions: Cold ($-40^\circ\text{C}$), Nominal ($27^\circ\text{C}$), and Hot ($125^\circ\text{C}$).
+
+\subsubsection*{ Sub-Nominal Supply Configuration ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$)}
+
+The performance metrics for all 8 bits operating under a synchronized sub-nominal voltage rail ($90\%$ of baseline supply) are compiled below. Tables \ref{tab:subnominal_sym_27}, \ref{tab:subnominal_sym_40}, and \ref{tab:subnominal_sym_125} organize the transition rates and propagation delays across process corners.
+
+% ==================================================
+% SUB-NOMINAL BALANCED: 27 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 4.270 / 3.866 & 7.303 & 4.908 / 4.300 & 9.518 & 4.844 / 4.373 & 9.523 & 5.654 / 4.935 & 11.520 \\ 
+        \texttt{VOUT1} & 4.262 / 3.681 & 7.512 & 4.897 / 4.209 & 9.132 & 4.831 / 4.239 & 9.038 & 5.623 / 4.914 & 12.040 \\ 
+        \texttt{VOUT2} & 4.188 / 3.799 & 7.664 & 4.840 / 4.361 & 9.169 & 4.838 / 4.334 & 9.457 & 5.617 / 5.060 & 11.670 \\ 
+        \texttt{VOUT3} & 4.236 / 4.157 & 7.799 & 4.898 / 4.303 & 9.630 & 4.850 / 4.316 & 9.539 & 5.652 / 4.948 & 11.640 \\ 
+        \texttt{VOUT4} & 4.249 / 3.765 & 7.854 & 4.897 / 4.219 & 9.603 & 4.836 / 4.261 & 9.558 & 5.631 / 4.846 & 11.550 \\ 
+        \texttt{VOUT5} & 4.262 / 3.777 & 7.888 & 4.902 / 4.216 & 9.606 & 4.831 / 4.267 & 9.558 & 5.623 / 4.830 & 11.500 \\ 
+        \texttt{VOUT6} & 4.270 / 3.866 & 7.889 & 4.908 / 4.300 & 9.660 & 4.844 / 4.373 & 9.558 & 5.654 / 4.935 & 11.520 \\ 
+        \texttt{VOUT7} & 4.270 / 3.866 & 7.889 & 4.908 / 4.300 & 9.660 & 4.844 / 4.373 & 9.558 & 5.654 / 4.935 & 11.520 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Sub-Nominal Supply Configuration ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) at $T = 27^{\circ}\text{C}$}
+    \label{tab:subnominal_sym_27}
+\end{table}
+
+% ==================================================
+% SUB-NOMINAL BALANCED: -40 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 3.937 / 3.562 & 7.303 & 4.537 / 3.944 & 9.108 & 4.435 / 3.982 & 9.042 & 5.169 / 4.481 & 11.980 \\ 
+        \texttt{VOUT1} & 3.681 / 3.350 & 7.512 & 4.209 / 3.855 & 9.132 & 4.239 / 3.855 & 9.038 & 4.914 / 4.516 & 11.510 \\ 
+        \texttt{VOUT2} & 3.517 / 3.517 & 7.664 & 4.008 / 4.008 & 9.169 & 3.976 / 3.976 & 8.953 & 4.613 / 4.613 & 11.100 \\ 
+        \texttt{VOUT3} & 3.509 / 3.509 & 7.799 & 4.303 / 3.949 & 9.221 & 4.316 / 3.946 & 9.056 & 4.517 / 4.517 & 11.090 \\ 
+        \texttt{VOUT4} & 3.486 / 3.486 & 7.854 & 3.883 / 3.883 & 9.202 & 3.888 / 3.888 & 9.087 & 4.401 / 4.401 & 11.010 \\ 
+        \texttt{VOUT5} & 3.490 / 3.490 & 7.888 & 3.878 / 3.878 & 9.204 & 3.892 / 3.892 & 9.087 & 4.395 / 4.395 & 10.960 \\ 
+        \texttt{VOUT6} & 3.937 / 3.562 & 7.889 & 4.537 / 3.944 & 9.221 & 4.435 / 3.982 & 9.059 & 5.169 / 4.481 & 10.950 \\ 
+        \texttt{VOUT7} & 3.937 / 3.562 & 7.889 & 4.537 / 3.944 & 9.221 & 4.435 / 3.982 & 9.059 & 5.169 / 4.481 & 10.950 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Sub-Nominal Supply Configuration ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) at $T = -40^{\circ}\text{C}$}
+    \label{tab:subnominal_sym_40}
+\end{table}
+
+% ==================================================
+% SUB-NOMINAL BALANCED: 125 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 4.957 / 4.420 & 8.131 & 5.699 / 4.978 & 9.969 & 5.659 / 5.039 & 9.537 & 6.583 / 5.749 & 12.510 \\ 
+        \texttt{VOUT1} & 4.226 / 4.167 & 8.344 & 4.856 / 4.854 & 10.030 & 4.890 / 4.871 & 9.523 & 4.914 / 5.760 & 12.040 \\ 
+        \texttt{VOUT2} & 4.317 / 4.317 & 8.564 & 4.984 / 4.984 & 10.130 & 4.973 / 4.973 & 9.457 & 5.844 / 5.844 & 11.670 \\ 
+        \texttt{VOUT3} & 4.303 / 4.303 & 8.667 & 4.941 / 4.941 & 10.170 & 4.954 / 4.954 & 9.539 & 5.746 / 5.746 & 11.640 \\ 
+        \texttt{VOUT4} & 4.219 / 4.219 & 8.695 & 4.859 / 4.859 & 10.130 & 4.905 / 4.905 & 9.558 & 5.624 / 5.624 & 11.550 \\ 
+        \texttt{VOUT5} & 4.216 / 4.216 & 8.732 & 4.856 / 4.856 & 10.140 & 4.908 / 4.908 & 9.558 & 5.613 / 5.613 & 11.500 \\ 
+        \texttt{VOUT6} & 4.957 / 4.420 & 8.802 & 5.699 / 4.978 & 10.250 & 5.659 / 5.039 & 9.558 & 6.583 / 5.749 & 11.520 \\ 
+        \texttt{VOUT7} & 4.957 / 4.420 & 8.802 & 5.699 / 4.978 & 10.250 & 5.659 / 5.039 & 9.558 & 6.583 / 5.749 & 11.520 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Sub-Nominal Supply Configuration ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) at $T = 125^{\circ}\text{C}$}
+    \label{tab:subnominal_sym_125}
+\end{table}
+
+% =========================================================================
+% 1. POWER SUMMARY FOR SYMMETRIC SUB-NOMINAL CONFIGURATION
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{FF Corner (mW)} & \textbf{FS Corner (mW)} & \textbf{SF Corner (mW)} & \textbf{SS Corner (mW)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 3.752 & 3.730 & 3.670 & 3.670 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 4.053 & 3.921 & 3.845 & 3.670 \\ \hline
+        Hot ($125^\circ\text{C}$) & 5.232 & 4.735 & 4.627 & 4.262 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Single-Ended Total Power Dissipation Across Temperature and Process Boundaries for the Sub-Nominal Supply Configuration ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$)}
+    \label{tab:subnominal_power_summary}
+\end{table}
+
+\clearpage
+
+\subsubsection*{ Super-Nominal Supply Configuration ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$)}
+
+The dynamic tracking parameters when both circuits are driven by a boosted super-nominal power rail (+$10\%$ of baseline supply) are compiled in Tables \ref{tab:supernominal_sym_27}, \ref{tab:supernominal_sym_40}, and \ref{tab:supernominal_sym_125}.
+
+% ==================================================
+% SUPER-NOMINAL BALANCED: 27 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 3.5 / 3.528 & 6.436 & 4.197 / 4.085 & 8.152 & 3.939 / 4.047 & 8.108 & 4.681 / 4.771 & 10.340 \\ 
+        \texttt{VOUT1} & 3.301 / 3.301 & 6.591 & 4.075 / 4.075 & 8.182 & 4.051 / 4.051 & 8.126 & 4.710 / 4.710 & 10.040 \\ 
+        \texttt{VOUT2} & 3.349 / 3.349 & 6.761 & 4.117 / 4.117 & 8.306 & 4.103 / 4.103 & 8.202 & 4.724 / 4.724 & 10.000 \\ 
+        \texttt{VOUT3} & 4.107 / 3.360 & 6.829 & 4.107 / 4.107 & 8.288 & 4.089 / 4.089 & 8.218 & 4.669 / 4.669 & 9.855 \\ 
+        \texttt{VOUT4} & 3.553 / 3.353 & 6.839 & 4.193 / 4.055 & 8.229 & 3.946 / 4.053 & 8.189 & 4.704 / 4.621 & 9.717 \\ 
+        \texttt{VOUT5} & 3.561 / 3.357 & 6.867 & 4.193 / 4.053 & 8.228 & 3.947 / 4.056 & 8.193 & 4.690 / 4.607 & 9.674 \\ 
+        \texttt{VOUT6} & 3.561 / 3.707 & 6.911 & 4.197 / 4.136 & 8.314 & 3.939 / 4.150 & 8.257 & 4.681 / 4.698 & 9.751 \\ 
+        \texttt{VOUT7} & 3.561 / 3.707 & 6.911 & 4.197 / 4.136 & 8.314 & 3.939 / 4.150 & 8.257 & 4.681 / 4.698 & 9.751 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Super-Nominal Supply Configuration ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) at $T = 27^{\circ}\text{C}$}
+    \label{tab:supernominal_sym_27}
+\end{table}
+
+% ==================================================
+% SUPER-NOMINAL BALANCED: -40 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 3.266 / 3.266 & 6.724 & 3.763 / 3.763 & 7.803 & 3.709 / 3.709 & 7.728 & 4.350 / 4.350 & 9.850 \\ 
+        \texttt{VOUT1} & 3.010 / 3.010 & 6.887 & 3.746 / 3.746 & 7.826 & 3.717 / 3.717 & 7.749 & 4.291 / 4.291 & 9.563 \\ 
+        \texttt{VOUT2} & 3.010 / 3.349 & 7.059 & 3.788 / 3.788 & 7.958 & 3.762 / 3.762 & 7.820 & 4.287 / 4.287 & 9.530 \\ 
+        \texttt{VOUT3} & 3.631 / 3.631 & 7.126 & 3.772 / 3.727 & 7.940 & 3.742 / 3.714 & 7.835 & 4.241 / 4.216 & 9.395 \\ 
+        \texttt{VOUT4} & 3.358 / 3.353 & 7.132 & 3.936 / 3.727 & 7.883 & 3.695 / 3.714 & 7.810 & 4.364 / 4.216 & 9.261 \\ 
+        \texttt{VOUT5} & 3.363 / 3.357 & 7.162 & 3.935 / 3.724 & 7.881 & 3.696 / 3.716 & 7.819 & 4.377 / 4.202 & 9.228 \\ 
+        \texttt{VOUT6} & 3.357 / 3.428 & 6.911 & 3.932 / 3.791 & 7.933 & 3.690 / 3.789 & 7.851 & 4.375 / 4.272 & 9.265 \\ 
+        \texttt{VOUT7} & 3.357 / 3.428 & 6.911 & 3.932 / 3.791 & 7.933 & 3.690 / 3.789 & 7.851 & 4.375 / 4.272 & 9.265 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Super-Nominal Supply Configuration ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) at $T = -40^{\circ}\text{C}$}
+    \label{tab:supernominal_sym_40}
+\end{table}
+
+% ==================================================
+% SUPER-NOMINAL BALANCED: 125 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 4.041 / 4.041 & 8.656 & 4.085 / 4.696 & 8.647 & 4.047 / 4.679 & 8.108 & 4.771 / 5.515 & 10.340 \\ 
+        \texttt{VOUT1} & 3.580 / 3.580 & 8.687 & 4.075 / 4.075 & 8.684 & 4.051 / 4.051 & 8.126 & 4.710 / 4.710 & 10.040 \\ 
+        \texttt{VOUT2} & 3.615 / 3.615 & 8.763 & 4.117 / 4.117 & 8.804 & 4.103 / 4.103 & 8.202 & 4.724 / 4.724 & 10.000 \\ 
+        \texttt{VOUT3} & 3.631 / 4.137 & 8.753 & 4.107 / 4.705 & 8.788 & 4.089 / 4.720 & 8.218 & 4.669 / 5.396 & 9.855 \\ 
+        \texttt{VOUT4} & 3.553 / 4.129 & 8.710 & 4.193 / 4.644 & 8.718 & 3.946 / 4.684 & 8.189 & 4.704 / 5.338 & 9.717 \\ 
+        \texttt{VOUT5} & 3.561 / 4.129 & 8.713 & 4.193 / 4.644 & 8.719 & 3.947 / 4.684 & 8.193 & 4.690 / 5.338 & 9.674 \\ 
+        \texttt{VOUT6} & 4.008 / 4.248 & 7.235 & 4.197 / 4.762 & 8.851 & 3.939 / 4.807 & 8.257 & 4.681 / 5.462 & 9.751 \\ 
+        \texttt{VOUT7} & 4.008 / 4.248 & 7.235 & 4.197 / 4.762 & 8.851 & 3.939 / 4.807 & 8.257 & 4.681 / 5.462 & 9.751 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Super-Nominal Supply Configuration ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) at $T = 125^{\circ}\text{C}$}
+    \label{tab:supernominal_sym_125}
+\end{table}
+
+% =========================================================================
+% 2. POWER SUMMARY FOR SYMMETRIC SUPER-NOMINAL CONFIGURATION
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{FF Corner (mW)} & \textbf{FS Corner (mW)} & \textbf{SF Corner (mW)} & \textbf{SS Corner (mW)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 5.465 & 5.121 & 5.003 & 4.855 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 5.913 & 5.449 & 5.331 & 5.087 \\ \hline
+        Hot ($125^\circ\text{C}$) & 7.494 & 6.540 & 6.358 & 5.772 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Single-Ended Total Power Dissipation Across Temperature and Process Boundaries for the Super-Nominal Supply Configuration ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$)}
+    \label{tab:supernominal_power_summary}
+\end{table}
+
+
+\subsection{Multi-Bit Performance Characterization Across Asymmetric Mixed-Supply Corners}
+\label{subsec:asymmetric_supply_multibit_corners}
+
+To establish structural margins against localized electrical variations, independent voltage domains were driven with opposite power supplies. This validation stresses the signal thresholds and interface matching at the block boundaries.
+
+\subsubsection*{Asymmetric Combination A: Sub-Nominal MUX and Super-Nominal Pre-Driver}
+
+In this configuration, the multiplexer core operates on a sub-nominal voltage rail ($V_{DD,MUX} = 720\text{ mV}$) to evaluate worst-case signal drive, while the pre-driver is pushed to a super-nominal rail ($V_{DD,PRE} = 990\text{ mV}$). Tables \ref{tab:asym_a_27}, \ref{tab:asym_a_40}, and \ref{tab:asym_a_125} compile the extracted tracking data for all 8 paths.
+
+% ==================================================
+% ASYMMETRIC A: 27 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 3.702 / 3.952 & 7.139 & 4.829 / 4.807 & 9.651 & 4.201 / 4.761 & 9.257 & 5.534 / 5.848 & 12.370 \\ 
+        \texttt{VOUT1} & 3.764 / 4.037 & 7.381 & 4.793 / 4.775 & 9.477 & 4.227 / 4.765 & 9.307 & 5.406 / 5.715 & 11.960 \\ 
+        \texttt{VOUT2} & 3.808 / 4.095 & 7.659 & 4.751 / 4.777 & 9.660 & 4.236 / 4.758 & 9.478 & 5.345 / 5.613 & 11.970 \\ 
+        \texttt{VOUT3} & 3.842 / 4.127 & 7.741 & 4.741 / 4.758 & 9.603 & 4.257 / 4.768 & 9.465 & 5.333 / 5.565 & 11.720 \\ 
+        \texttt{VOUT4} & 3.862 / 4.124 & 7.747 & 4.731 / 4.732 & 9.504 & 4.262 / 4.751 & 9.404 & 5.289 / 5.533 & 11.490 \\ 
+        \texttt{VOUT5} & 3.866 / 4.141 & 7.787 & 4.726 / 4.727 & 9.499 & 4.266 / 4.754 & 9.414 & 5.272 / 5.509 & 11.430 \\ 
+        \texttt{VOUT6} & 3.865 / 4.229 & 7.896 & 4.726 / 4.800 & 9.651 & 4.270 / 4.853 & 9.568 & 5.272 / 5.601 & 11.600 \\ 
+        \texttt{VOUT7} & 3.865 / 4.229 & 7.896 & 4.726 / 4.800 & 9.651 & 4.270 / 4.853 & 9.568 & 5.272 / 5.601 & 11.600 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Mixed Supply Configuration A ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) at $T = 27^{\circ}\text{C}$}
+    \label{tab:asym_a_27}
+\end{table}
+
+% ==================================================
+% ASYMMETRIC A: -40 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 3.517 / 3.655 & 7.139 & 4.565 / 4.439 & 9.155 & 3.915 / 4.324 & 8.897 & 5.171 / 5.311 & 11.910 \\ 
+        \texttt{VOUT1} & 3.564 / 3.738 & 7.381 & 4.515 / 4.401 & 9.161 & 3.944 / 4.346 & 8.950 & 5.062 / 5.184 & 11.500 \\ 
+        \texttt{VOUT2} & 3.615 / 3.791 & 7.659 & 4.478 / 4.398 & 9.375 & 3.976 / 4.351 & 9.160 & 4.993 / 5.096 & 11.560 \\ 
+        \texttt{VOUT3} & 3.649 / 3.822 & 7.741 & 4.468 / 4.374 & 9.311 & 3.996 / 4.358 & 9.147 & 4.968 / 5.069 & 11.300 \\ 
+        \texttt{VOUT4} & 3.662 / 3.826 & 7.747 & 4.456 / 4.355 & 9.210 & 4.011 / 4.348 & 9.086 & 4.445 / 5.019 & 11.070 \\ 
+        \texttt{VOUT5} & 3.674 / 3.838 & 7.787 & 4.450 / 4.350 & 9.203 & 4.015 / 4.351 & 9.096 & 4.453 / 5.004 & 11.010 \\ 
+        \texttt{VOUT6} & 3.664 / 3.664 & 7.896 & 4.453 / 4.401 & 9.319 & 4.012 / 4.434 & 9.212 & 4.553 / 5.073 & 11.130 \\ 
+        \texttt{VOUT7} & 3.664 / 3.664 & 7.896 & 4.453 / 4.401 & 9.319 & 4.012 / 4.434 & 9.212 & 4.553 / 5.073 & 11.130 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Mixed Supply Configuration A ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) at $T = -40^{\circ}\text{C}$}
+    \label{tab:asym_a_40}
+\end{table}
+
+% ==================================================
+% ASYMMETRIC A: 125 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 4.071 / 4.507 & 7.727 & 5.285 / 5.485 & 9.763 & 4.661 / 5.420 & 9.650 & 6.152 / 6.630 & 12.770 \\ 
+        \texttt{VOUT1} & 4.134 / 4.595 & 7.967 & 5.218 / 5.454 & 9.770 & 4.682 / 5.427 & 9.696 & 6.044 / 6.504 & 12.380 \\ 
+        \texttt{VOUT2} & 4.191 / 4.644 & 8.210 & 5.186 / 5.459 & 9.934 & 4.713 / 5.452 & 9.846 & 5.961 / 6.423 & 11.970 \\ 
+        \texttt{VOUT3} & 4.223 / 4.679 & 8.294 & 5.176 / 5.449 & 9.891 & 4.727 / 5.452 & 9.831 & 5.934 / 6.359 & 12.120 \\ 
+        \texttt{VOUT4} & 4.234 / 4.678 & 8.294 & 5.175 / 5.426 & 9.807 & 4.721 / 5.441 & 9.766 & 5.924 / 6.311 & 11.900 \\ 
+        \texttt{VOUT5} & 4.247 / 4.696 & 8.336 & 5.169 / 5.421 & 9.794 & 4.724 / 5.443 & 9.775 & 5.911 / 6.295 & 11.840 \\ 
+        \texttt{VOUT6} & 4.254 / 4.801 & 8.512 & 5.172 / 5.515 & 9.988 & 4.722 / 5.561 & 9.971 & 5.899 / 6.407 & 12.060 \\ 
+        \texttt{VOUT7} & 4.254 / 4.801 & 8.512 & 5.172 / 5.515 & 9.988 & 4.722 / 5.561 & 9.971 & 5.899 / 6.407 & 12.060 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Mixed Supply Configuration A ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$) at $T = 125^{\circ}\text{C}$}
+    \label{tab:asym_a_125}
+\end{table}
+
+% =========================================================================
+% 3. POWER SUMMARY FOR MIXED SUPPLY CONFIGURATION A
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{FF Corner (mW)} & \textbf{FS Corner (mW)} & \textbf{SF Corner (mW)} & \textbf{SS Corner (mW)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 2.922 & 3.676 & 3.135 & 2.898 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 3.101 & 2.831 & 3.384 & 2.978 \\ \hline
+        Hot ($125^\circ\text{C}$) & 4.138 & 3.345 & 3.070 & 3.716 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Single-Ended Total Power Dissipation Across Temperature and Process Boundaries for Mixed Supply Configuration A ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$)}
+    \label{tab:asym_a_power_summary}
+\end{table}
+
+\clearpage
+
+\subsubsection*{Asymmetric Combination B: Super-Nominal MUX and Sub-Nominal Pre-Driver}
+
+In the second asymmetric evaluation campaign, the multiplexer block runs on a super-nominal supply ($V_{DD,MUX} = 880\text{ mV}$), driving a sub-nominal pre-driver segment ($V_{DD,PRE} = 810\text{ mV}$). Tables \ref{tab:asym_b_27}, \ref{tab:asym_b_40}, and \ref{tab:asym_b_125} present the complete multi-bit results extracted across process tracking corners.
+
+% ==================================================
+% ASYMMETRIC B: 27 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 4.734 / 4.812 & 7.303 & 4.909 / 5.094 & 9.483 & 5.176 / 5.514 & 9.537 & 5.892 / 6.399 & 12.510 \\ 
+        \texttt{VOUT1} & 3.884 / 3.912 & 7.512 & 4.553 / 4.321 & 9.518 & 4.734 / 4.878 & 9.523 & 5.284 / 5.600 & 12.040 \\ 
+        \texttt{VOUT2} & 3.884 / 3.912 & 7.664 & 4.553 / 4.321 & 9.583 & 4.734 / 4.878 & 9.457 & 5.284 / 5.600 & 11.670 \\ 
+        \texttt{VOUT3} & 3.884 / 3.912 & 7.799 & 4.553 / 4.321 & 9.630 & 4.734 / 4.878 & 9.539 & 5.284 / 5.600 & 11.640 \\ 
+        \texttt{VOUT4} & 4.249 / 4.249 & 7.854 & 4.897 / 4.897 & 9.603 & 4.836 / 4.836 & 9.558 & 5.631 / 5.631 & 11.550 \\ 
+        \texttt{VOUT5} & 4.262 / 4.305 & 7.888 & 4.897 / 4.216 & 9.606 & 4.831 / 4.908 & 9.558 & 5.623 / 4.830 & 11.500 \\ 
+        \texttt{VOUT6} & 4.270 / 3.866 & 7.889 & 4.908 / 4.300 & 9.660 & 4.844 / 4.373 & 9.556 & 5.654 / 4.935 & 11.520 \\ 
+        \texttt{VOUT7} & 4.270 / 3.866 & 7.889 & 4.908 / 4.300 & 9.660 & 4.844 / 4.373 & 9.556 & 5.654 / 4.935 & 11.520 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Mixed Supply Configuration B ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) at $T = 27^{\circ}\text{C}$}
+    \label{tab:asym_b_27}
+\end{table}
+
+% ==================================================
+% ASYMMETRIC B: -40 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 3.664 / 4.254 & 7.303 & 4.453 / 4.495 & 9.108 & 4.012 / 4.565 & 8.897 & 4.921 / 5.073 & 11.980 \\ 
+        \texttt{VOUT1} & 3.562 / 3.907 & 7.512 & 3.944 / 4.401 & 9.132 & 3.982 / 4.434 & 9.038 & 4.481 / 5.184 & 11.510 \\ 
+        \texttt{VOUT2} & 3.562 / 3.907 & 7.664 & 3.944 / 4.401 & 9.169 & 3.982 / 4.434 & 8.953 & 4.481 / 5.184 & 11.100 \\ 
+        \texttt{VOUT3} & 3.562 / 3.907 & 7.799 & 3.944 / 4.401 & 9.221 & 3.982 / 4.434 & 9.056 & 4.481 / 5.184 & 11.090 \\ 
+        \texttt{VOUT4} & 3.926 / 3.486 & 7.854 & 4.897 / 3.883 & 9.202 & 4.836 / 4.261 & 9.087 & 5.155 / 4.401 & 11.010 \\ 
+        \texttt{VOUT5} & 3.937 / 3.490 & 7.888 & 4.525 / 3.878 & 9.204 & 4.831 / 4.267 & 9.087 & 5.158 / 4.395 & 10.960 \\ 
+        \texttt{VOUT6} & 3.937 / 3.562 & 7.889 & 4.537 / 3.944 & 9.221 & 4.435 / 3.982 & 9.059 & 5.169 / 4.481 & 10.950 \\ 
+        \texttt{VOUT7} & 3.937 / 3.562 & 7.889 & 4.537 / 3.944 & 9.221 & 4.435 / 3.982 & 9.059 & 5.169 / 4.481 & 10.950 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Mixed Supply Configuration B ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) at $T = -40^{\circ}\text{C}$}
+    \label{tab:asym_b_40}
+\end{table}
+
+% ==================================================
+% ASYMMETRIC B: 125 C
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \small
+    \begin{tabular}{|l|cc|cc|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{FF Corner}} & \multicolumn{2}{c|}{\textbf{FS Corner}} & \multicolumn{2}{c|}{\textbf{SF Corner}} & \multicolumn{2}{c|}{\textbf{SS Corner}} \\ \hline
+        \textbf{Bit Line} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} & \textbf{$T_r / T_f$ (ps)} & \textbf{$T_{pd}$ (ps)} \\ \hline
+        \texttt{VOUT0} & 4.254 / 4.801 & 8.131 & 5.172 / 5.515 & 9.969 & 4.722 / 5.561 & 9.537 & 5.899 / 6.407 & 13.120 \\ 
+        \texttt{VOUT1} & 4.957 / 4.420 & 8.344 & 5.699 / 4.978 & 10.030 & 5.659 / 5.039 & 10.190 & 6.583 / 5.749 & 12.680 \\ 
+        \texttt{VOUT2} & 4.957 / 4.420 & 8.564 & 5.699 / 4.978 & 10.130 & 5.659 / 5.039 & 10.190 & 6.583 / 5.749 & 12.420 \\ 
+        \texttt{VOUT3} & 4.957 / 4.420 & 8.667 & 5.699 / 4.978 & 10.170 & 5.659 / 5.039 & 10.190 & 6.583 / 5.749 & 12.330 \\ 
+        \texttt{VOUT4} & 4.936 / 4.290 & 8.695 & 5.661 / 4.859 & 10.130 & 5.669 / 4.905 & 10.180 & 6.570 / 5.624 & 12.210 \\ 
+        \texttt{VOUT5} & 4.940 / 4.305 & 8.732 & 5.662 / 4.856 & 10.140 & 5.661 / 4.908 & 10.180 & 6.570 / 5.613 & 12.160 \\ 
+        \texttt{VOUT6} & 4.957 / 4.420 & 8.802 & 5.699 / 4.978 & 10.250 & 5.659 / 5.039 & 10.220 & 6.583 / 5.749 & 12.230 \\ 
+        \texttt{VOUT7} & 4.957 / 4.420 & 8.802 & 5.699 / 4.978 & 10.250 & 5.659 / 5.039 & 10.220 & 6.583 / 5.749 & 12.230 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Mixed Supply Configuration B ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$) at $T = 125^{\circ}\text{C}$}
+    \label{tab:asym_b_125}
+\end{table}
+
+% =========================================================================
+% 4. POWER SUMMARY FOR MIXED SUPPLY CONFIGURATION B
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{FF Corner (mW)} & \textbf{FS Corner (mW)} & \textbf{SF Corner (mW)} & \textbf{SS Corner (mW)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 2.893 & 3.991 & 2.997 & 2.893 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 3.300 & 3.143 & 2.993 & 2.282 \\ \hline
+        Hot ($125^\circ\text{C}$) & 3.080 & 2.933 & 3.534 & 3.321 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Single-Ended Total Power Dissipation Across Temperature and Process Boundaries for Mixed Supply Configuration B ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$)}
+    \label{tab:asym_b_power_summary}
+\end{table}
+
+\clearpage
+
+\subsubsection*{Asymmetric Analytical Discussion}
+
+An evaluation of the compiled asynchronous tracking matrices reveals critical physical mechanisms governing the threshold behavior under asymmetric voltage potentials:
+
+\textbf{1. Systematic Threshold Compressions in Combination A:} \\
+When the multiplexer core operates on a sub-nominal supply profile ($V_{DD,MUX} = 720\text{ mV}$) alongside a super-nominal pre-driver voltage field ($V_{DD,PRE} = 990\text{ mV}$), the resulting voltage crossing degrades significantly, contracting into an extremely low region ($\sim$101~mV to $\sim$178~mV). This severe downward tracking drift is caused directly by the architectural configuration of the first pre-driver inverter cell, which has a highly dominant PMOS device. Because the arriving multiplexer output swing is limited to 720~mV, its maximum logic-high level is insufficient to cleanly deactivate this oversized PMOS branch. The dominant PMOS remains partially conductive during high-speed transitions, establishing a strong pull-up current that overpowers the NMOS discharging path. Consequently, the internal switching threshold shifts downward, forcing the output eye transitions to cross near the ground rail.
+
+\textbf{2. Systematic Threshold Elevations in Combination B:} \\
+Conversely, reversing the supply constraints to a super-nominal multiplexer output ($V_{DD,MUX} = 880\text{ mV}$) driving a sub-nominal pre-driver buffer chain ($V_{DD,PRE} = 810\text{ mV}$) forces the signal crossing voltage to shift heavily upward, tracking within an elevated window from $\sim$606~mV to $\sim$632~mV. This severe upward shift is driven by the internal layout profiles of the input pre-driver staging, where the NMOS transistor is geometrically dominant over the PMOS channel fabric. When the over-driven 880~mV signal swing arrives at the input terminal of the sub-nominal pre-driver, it over-saturates the gate channel of the dominant NMOS. This accelerated NMOS activation creates an incredibly rapid low-impedance path to the ground rail during data transitions, discharging the interface node prematurely. This asymmetric discharging speed skews the vertical switching threshold upward, anchoring the multi-bit output crossings near the upper voltage rail.
+
+\subsubsection{Power Consumption}
+
+An analysis of the power distribution across the components reveals key physical insights into the operation of the circuit.
+
+\textbf{1. Multiplexer Core Power Allocation:} \\
+The core multiplexer block consumes a single-ended power of 4.059~mW, which accounts for approximately 64.8\% of the total single-ended block power. When scaled differentially, this components demands 8.118~mW. This higher energy share is a direct consequence of the serialization speed requirements. Toggling transmission gates and internal capacitive routing nodes at high wireline data rates creates high dynamic charging currents ($I_{dyn} = C \cdot V \cdot f$), which forms the primary component of the multiplexer's power signature.
+\clearpage
+\textbf{2. Pre-Driver Buffer Network Overhead:} \\
+The active pre-driver logic networks draw a single-ended power of 2.2~mW, scaling to 4.4~mW under full differential operation. This active consumption comes from the multi-stage logic tapering choices needed to smoothly drive the high capacitive load of the Driver without creating timing bottlenecks.
+
+\textbf{3. Total Power Envelope Performance:} \\
+The overall combined block power stands at 6.26~mW for single-ended operation and accumulates to 12.52~mW for the full differential architecture. By keeping the collective power envelope restricted within these boundaries, the serialized block prevents local thermal heating issues on the silicon die. This ensures that the circuit maintains highly stable threshold tracking voltages and excellent jitter performance across the entire chip area before handing off the signals to the output driver stage.
+
+\clearpage
+
+\subsection{Layout Characterization of the Least Significant Bit (LSB) Cell}
+\label{subsec:lsb_layout_first_iteration}
+
+\subsubsection{Single-Slice Schematic Architecture and Component Decomposition}
+
+To analyze how physical layout choices impact final signal integrity, the Least Significant Bit (LSB) cell was isolated for detailed post-layout verification. Before reviewing the physical mask design, the single-slice schematic shown in Figure \ref{fig:lsb_schematic_slice} must be broken down into its core functional blocks. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{tgslice (2).png}
+    \vspace{2mm}
+    \caption{schematic diagram of the single-slice LSB cell architecture.}
+    \label{fig:lsb_schematic_slice}
+\end{figure}
+
+The transmission and clock control paths of this single slice are decomposed into the following sequential components:
+
+\textbf{1. Data Input Buffer (Inverter1):} \\
+The incoming digital data bit enters the slice through \texttt{Inverter1}. This block acts as an isolation buffer that reshapes the data signal edges and protects the internal nodes of the transmitter from external source loading variations.
+
+\textbf{2. Clock Inversion Path (Inverter2):} \\
+The clock signal (\texttt{clkx}) is fed into \texttt{Inverter2} to generate the inverted local clock control line (\texttt{nclki}). This inverted line controls the NMOS transistor switch within the main transmission gate.
+
+\textbf{3. Clock Delay-Matching Element (TG2):} \\
+Because \texttt{Inverter2} introduces a finite propagation delay when creating the inverted clock line, a standalone transmission gate (\texttt{TG2}) is placed on the true clock path. By routing the true clock signal through \texttt{TG2}, the circuit adds a matching delay that aligns the arrival times of both the true and inverted clock signals (\texttt{pclki} and \texttt{nclki}), completely eliminating timing skew between the clock phases.
+
+\textbf{4. Main Transmission Gate Switch (N0 and P0):} \\
+The main transmission gate switch sits at the output of the slice and is composed of the NMOS transistor \texttt{N0} and PMOS transistor \texttt{P0}. Controlled by the perfectly synchronized local clock paths, this switch handles the high-speed serialization by passing the buffered data signal from \texttt{Inverter1} directly to the final output node (\texttt{OUT}).
+
+\subsubsection{Physical Layout Decomposition of the First Iteration}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{SINGLE SLICE.png}
+    \vspace{2mm}
+    \caption{ layout implementation for the first iteration of the single LSB cell, decomposing the routing paths from input to output.}
+    \label{fig:single_slice_layout_it1}
+\end{figure}
+
+
+Following the schematic verification, the physical layout mask for the first iteration of the single LSB cell was implemented. The structural decomposition of this layout slice is physically arranged from left to right into four dedicated active regions:
+\clearpage
+
+\textbf{1. Data Input Buffer  (Input\_Inv):} \\
+The leftmost section of the cell houses the physical layout of \texttt{Input\_Inv}. This inverter uses tightly pitched active regions with optimized gate finger widths to minimize input gate capacitance. By isolating the internal switching mechanics from the input node, this block maintains an identical input capacitance regardless of the state of the subsequent transmission switches.
+
+\textbf{2. Main Transmission Gate  (Main TG):} \\
+Immediately to the right of the input buffer sits the main transmission gate switch array. The layout groups the active NMOS and PMOS transistor regions closely together to keep source and drain diffusion area parasitics as low as possible. This layout block serves as the active pass-gate switch that controls the high-speed data serialization before routing the signal out to the combining node.
+
+\textbf{3. Dummy Compensation  (Dummy TG):} \\
+Placed in series directly alongside the main switch is the dummy compensation transmission gate block. The layout mimics the geometric profile of the main switches but ties its internal source and drain layers together. This compensation block is designed to absorb charge injection and clock feedthrough noise when the active paths toggle.
+
+\textbf{4. Local Clock Inverter Cell (Inverter Clock):} \\
+The rightmost partition of the layout slice contains the local clock inverter logic. This cell is responsible for generating the synchronized complementary clock phases needed to drive the adjacent transmission gates cleanly.
+
+
+\textbf{5. Serpentine Routing Technique for Delay and Parasitic Matching:} \\
+A critical challenge encountered during the layout routing phase of this first iteration was the physical mismatch between the control lines. Because the complementary clock paths originate from physically separate parts of the cell—specifically comparing the output line coming from the dummy transmission gate path against the localized output line of the clock inverter network—their unmatched track lengths introduced asymmetric parasitic RC delays. 
+
+To eliminate the resulting phase skew between these control lines, a \textbf{serpentine routing technique} was applied to the layout. Instead of routing the lines through unequal paths, the output metal track of the dummy transmission gate was intentionally laid out in a series of tightly folded, looping switchback patterns. 
+
+By calculating the exact length and parasitic capacitance of the clock inverter's output network, this serpentine routing purposefully builds a matching physical delay directly into the dummy gate's output path. This geometrical compensation matches the RC loading characteristics of the two lines exactly, forcing both control paths to align their transition edges at the gates of the switches and ensuring balanced switching across the slice.
+
+\subsubsection{Pre-Driver Layout  Integration}
+
+Following the single-slice implementation, the layout of the pre-driver block was structured. This block is responsible for providing the necessary driving strength to control the subsequent stages without degrading the transient edge rates of the high-speed data signals.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{predriver 1st iteration.png}
+    \vspace{2mm}
+    \caption{Physical layout of the pre-driver cell  for the first design iteration.}
+    \label{fig:predriver_layout_it1}
+\end{figure}
+
+The pre-driver layout is enclosed within dedicated power supply. The cell internal placement keeps routing paths as minimum as possible preventing parasitic capacitance loading.
+\subsubsection{Complete LSB Bit Array Assembly and Output Interconnect Routing}
+
+To build the full functional Least Significant Bit (LSB) block, four identical multiplexer slices are tiled together alongside the pre-driver macro. The complete layout assembly of this 4-way multiplexer core and its connection to the pre-driver stage is illustrated in Figure \ref{fig:lsb_bit_assembly_it1}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{lsb_bit_1st_iteration.png}
+    \vspace{2mm}
+    \caption{Complete physical mask layout assembly of the first LSB bit iteration, showing the 4 vertically tiled MUX slices and the unshielded horizontal interconnect routing to the pre-driver.}
+    \label{fig:lsb_bit_assembly_it1}
+\end{figure}
+
+The physical interconnection of the outputs from all four parallel multiplexer channels relies on a structured routing network:
+
+\textbf{1. Vertical Via Extraction Path:} \\
+The output node of each individual main transmission gate switch is tapped locally. Using a vertical stack of contacts and vias, the signal is brought up from the lower metal layers directly at the output boundary of each cell. This vertical arrangement allows the four MUX slices to be stacked tightly on top of each other, keeping the vertical layout pitch very small.
+
+\textbf{2. Horizontal Summing Node Interconnect:} \\
+Once extracted vertically, the four tapped outputs are tied together into a single shared node using a long horizontal metal wire. This horizontal track runs across the layout area to transport the combined serialized bit stream directly to the input terminal of the pre-driver block.
+\clearpage
+\subsubsection{Post-Layout Simulation Results and Eye Diagram Performance}
+
+To verify the physical integrity of the first layout iteration, a complete post-layout transient simulation was performed under nominal Typical-Typical (TT) conditions at $V_{DD2} = 900\text{ mV}$. The extracted parasitic netlist includes all layout track resistances and coupling capacitances. The resulting high-speed output eye diagram for this first iteration is shown in Figure \ref{fig:1st_iteration_eye}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{1st iteration eye.png}
+    \vspace{2mm}
+    \caption{Simulated post-layout output eye diagram for the first LSB bit layout iteration showing significant jitter and a fuzzy transition profile.}
+    \label{fig:1st_iteration_eye}
+\end{figure}
+
+An analysis of the simulation waveform reveals severe performance degradation, characterized by a highly distorted, "fuzzy" eye profile with multiple overlapping transition tracks. The root causes of this deterministic jitter and signal degradation are broken down below:
+
+\textbf{1. Excessive Common Node Parasitic Capacitance:} \\
+The primary bottleneck is located at the shared output summing node where the four vertically stacked multiplexer slices connect. In this unoptimized layout, routing the outputs from all four channels together over a long,  distance creates an exceptionally large parasitic routing capacitance ($C_p$). This heavy capacitive loading severely degrades the  bandwidth at the summing node, lowering the circuit's pole frequency and creating a slow, sluggish transient response.
+
+\textbf{2. Inter-Symbol Interference (ISI) and Slow Settling:} \\
+Because the time constant ($\tau = R \cdot C$) of the  common node is excessively high, the output signal cannot fully settle within a single unit interval (UI). The residual charge from previous data bits carries over into subsequent bit windows, causing severe inter-symbol interference (ISI). This manifests as the multi-track thickness and blurred crossing points visible in the eye diagram, reducing the horizontal eye opening.
+
+\subsection{Layout Characterization of the Finalized LSB Cell Iteration}
+\label{subsec:lsb_layout_final_iteration}
+
+\subsubsection{Transistor Scaling and Driver Strengthening Strategy}
+
+To eliminate the bandwidth limitations and inter-symbol interference (ISI) caused by the heavy parasitic capacitance of the shared multiplexer output node, a targeted transistor scaling strategy was implemented in the final layout iteration. 
+
+Because the common summing node carries an unavoidable capacitive load from combining the four parallel channels, the driving capabilities of the active switching cells had to be reinforced. The transistor dimensions within the core switching blocks were modified using the following systematic approach:
+
+\textbf{1. Main Transmission Gate Upsizing ($\times2$):} \\
+The channels of both the NMOS (\texttt{N0}) and PMOS (\texttt{P0}) transistors inside the main transmission gate switch were widened to twice their original size ($\times2$). Doubling the device width cuts the channel resistance ($R_{on}$) of the pass-gate switch in half. This modification significantly reduces the RC time constant ($\tau = R_{on} \cdot C_{parasitic}$) at the common node, expanding the analog bandwidth and speeding up the transient settling time.
+
+\textbf{2. Input Isolation Buffer Resizing (\texttt{Input\_Inv}):} \\
+Because upsizing the main transmission gate switches doubles their total input gate capacitance, the preceding data buffer (\texttt{Input\_Inv}) had to be upsized proportionally. The transistor widths within the input inverter were scaled up to maintain a strong driving ratio. This ensures that the buffer can rapidly charge and discharge the enlarged gate capacitances of the transmission gate without degrading the internal data edge rates.
+
+\textbf{3. Pre-Driver Multi-Stage Enhancements:} \\
+In addition to cell resizing, critical layout and schematic optimizations were introduced within the active pre-driver chain. In the first layout iteration, the pre-driver suffered from a skewed switching threshold that pushed the voltage crossing point noticeably higher than the ideal $V_{DD}/2$ level, introducing strong duty-cycle asymmetry. Furthermore, the unoptimized sizing ratios in the early pre-driver cells generated an unacceptable level of intrinsic deterministic jitter (DJ). 
+
+To overcome these limitations, the transistor width-to-length ratios within the pre-driver logic gates were carefully re-balanced to equalize the pull-up and pull-down current strengths. This modification successfully pulled the eye diagram crossing point back down to the exact $V_{DD}/2$ midpoint. Concurrently, the multi-stage inverter sizing profile was optimized to maintain high slew rates, eliminating the structural DJ contributed by the first pre-driver design and ensuring a highly deterministic clock-and-data path.
+
+\subsubsection{Layout Decomposition of the Final Iteration}
+
+Following the sizing updates, the layouts for the standalone components were finalized. Figure \ref{fig:singleslice_6th} shows the layout cell for the single optimized LSB slice, highlighting the wider device fingers used to implement the strengthened $\times2$ switching fabric.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{SINGLESLICE_6TH.png}
+    \vspace{2mm}
+    \caption{Layout implementation for the finalized single LSB cell iteration featuring upsized transistor geometries.}
+    \label{fig:singleslice_6th}
+\end{figure}
+
+The standalone pre-driver layout block was enhanced to match these architectural changes. The layout view of the updated pre-driver cell is shown in Figure \ref{fig:predriver_6th}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{predriver 6TH iteration.png}
+    \vspace{2mm}
+    \caption{Layout of the enhanced pre-driver cell featuring optimized transistor aspect ratios to fix the voltage crossing point.}
+    \label{fig:predriver_6th}
+\end{figure}
+
+\subsubsection{Complete Finalized LSB Bit Layout Assembly}
+
+Following the individual component updates, the final layout for the complete LSB bit was assembled. The 4 optimized MUX slices were vertically tiled and integrated with the reinforced pre-driver block, using an optimized routing grid to minimize interconnect lengths. The complete layout assembly is illustrated in Figure \ref{fig:lsb_bit_assembly_final}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{lsb_bit__6THiteration_WITHAREA.png}
+    \vspace{2mm}
+    \caption{Complete layout assembly of the finalized LSB bit iteration, showing the vertically stacked MUX slices connected to the adjacent pre-driver block.}
+    \label{fig:lsb_bit_assembly_final}
+\end{figure}
+
+\clearpage
+\subsection{Post-Layout Nominal Performance Verification}
+\label{subsec:post_layout_nominal_verification}
+
+To validate the physical layout assembly under nominal operating bounds, complete post-layout transient extractions were executed under Typical-Typical (TT) corner conditions at a room temperature of $27^{\circ}\text{C}$. The core multiplexer was driven with its baseline supply ($V_{DD\_CORE} = 0.8\text{ V}$) while the cascading pre-driver logic buffer chain was backed by its dedicated rail ($V_{DD\_DRV} = 0.9\text{ V}$). 
+
+The quantitative performance parameters extracted from the parasitic-loaded post-layout netlist are summarized in Table~\ref{tab:post_layout_nominal_baseline}, followed by the corresponding transient eye diagram profiles under clean and noisy supply constraints.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{14pt}
+    \begin{tabular}{|l|c|}
+        \hline
+        Specification & Typical (TT) \\ \hline
+        Swing (mV) & 900 \\ \hline
+        Eye Width (ps) & 31.1 \\ \hline
+        Eye Crossing (mV) & $\sim$440 \\ \hline
+        Deterministic Jitter (fs) & 416 \\ \hline
+        PSIJ at 10 mVpp noise on both supplies (fs) &  402.88 \\ \hline
+        PSIJ (fs/mV) & 40.3 \\ \hline
+        Fall Time (ps) & 6.2 \\ \hline
+        Rise Time (ps) & 6.2 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+  \caption{Post-Layout Typical Simulation Performance Metrics for the Integrated Multiplexer and Pre-Driver Block}
+    \label{tab:post_layout_nominal_baseline}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    % Place holder for your typical_eye.png
+    \includegraphics[width=0.95\textwidth]{typical_eye.png}
+    \vspace{1mm} % Adjust height as needed for your layout
+    \caption{Post-layout transient eye diagram at the transmitter output node under clean Typical-Typical (TT) nominal corner conditions.}
+    \label{fig:post_layout_typical_eye}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    % Place holder for your typical_eye_with_noise.png
+    \includegraphics[width=0.95\textwidth]{typical_eye_with_noise.png}
+    \vspace{1mm} % Adjust height as needed for your layout
+    \caption{Post-layout transient eye diagram at the transmitter output node under Typical-Typical (TT) conditions with simultaneous $10\text{ mV}_{pp}$ high-frequency supply noise injected onto both rails.}
+    \label{fig:post_layout_typical_noise_eye}
+\end{figure}
+
+\subsection{Post-Layout Corner Characterization of the Integrated Block}
+\subsubsection*{PVT Characterization Data and Waveform Analysis}
+
+The quantitative performance matrices and corresponding multi-corner eye diagram captures for the integrated block under post-layout constraints are detailed below.
+
+% ==================================================
+% 1. NOMINAL TEMPERATURE SECTION (27 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 890 & 890 & 890 & 890 \\ \hline
+        Eye Width (ps) & 30.80 & 30.23 & 30.18 & Fail \\ \hline
+        Eye Crossing (mV) & $\sim$397 & $\sim$424 & $\sim$396 & $\sim$800 \\ \hline
+        Deterministic Jitter (fs) & 442.2 & 366.9 & 484.0 & Fail \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 309.6 & 652.0 & 584.6 & Fail \\ \hline
+        PSIJ (fs/mV) & 30.96 & 65.20 & 58.46 & Fail \\ \hline
+        Total Jitter (fs) & 751.8 & 1018.9 & 1068.6 & Fail \\ \hline
+        Rise Time (ps) & 5.89 & 7.72 & 6.66 & 9.03 \\ \hline
+        Fall Time (ps) & 5.97 & 6.82 & 7.48 & 9.83 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Post-Layout Integrated Mux and Pre-Driver Corners at Sub-Nominal Supply Tracks and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:post_layout_corners_27}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{NOMINAL_TEMP_PL_SUBNOMINAL_BAYEZ.png}
+    \vspace{0.5mm}
+    \caption{Simulated post-layout clean-supply eye diagrams for the integrated block at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:post_layout_eyes_27_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{NOMINAL_TEMP_PL_SUBNOMINAL_BAYEZ_NOISE.png}
+    \vspace{0.5mm}
+    \caption{Simulated post-layout eye diagrams with $10\text{ mV}_{pp}$ noise applied to supply tracks at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:post_layout_eyes_27_noise}
+\end{figure}
+
+% ==================================================
+% 2. COLD TEMPERATURE SECTION (-40 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 890 & 890 & 890 & 890 \\ \hline
+        Eye Width (ps) & 30.82 & 30.12 & 30.12 & Fail \\ \hline
+        Eye Crossing (mV) & $\sim$381 & $\sim$397 & $\sim$390 & $\sim$810 \\ \hline
+        Deterministic Jitter (fs) & 425.3 & 363.5 & 427.6 & Fail \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 367.3 & 766.7 & 703.1 & Fail \\ \hline
+        PSIJ (fs/mV) & 36.73 & 76.67 & 70.31 & Fail \\ \hline
+        Total Jitter (fs) & 792.6 & 1130.2 & 1130.7 & Fail \\ \hline
+        Rise Time (ps) & 5.57 & 7.32 & 6.22 & 8.44 \\ \hline
+        Fall Time (ps) & 5.48 & 6.18 & 6.78 & 9.25 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Post-Layout Integrated Mux and Pre-Driver Corners at Sub-Nominal Supply Tracks and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:post_layout_corners_40}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{COLD_TEMP_PL_SUBNOMINAL_BAYEZ.png}
+    \vspace{1mm}
+    \caption{Simulated post-layout clean-supply eye diagrams for the integrated block at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:post_layout_eyes_40_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{COLD_TEMP_PL_SUBNOMINAL_BAYEZ_NOISY.png}
+    \vspace{1mm}
+    \caption{Simulated post-layout eye diagrams with $10\text{ mV}_{pp}$ noise applied to supply tracks at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:post_layout_eyes_40_noise}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 3. HOT TEMPERATURE SECTION (125 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 890 & 890 & 890 & 890 \\ \hline
+        Eye Width (ps) & 30.57 & 30.43 & 30.35 & Fail \\ \hline
+        Eye Crossing (mV) & $\sim$411 & $\sim$448 & $\sim$398 & $\sim$790 \\ \hline
+        Deterministic Jitter (fs) & 457.6 & 402.8 & 550.4 & Fail \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 220.7 & 420.7 & 346.8 & Fail \\ \hline
+        PSIJ (fs/mV) & 22.07 & 42.07 & 34.68 & Fail \\ \hline
+        Total Jitter (fs) & 678.3 & 823.5 & 897.3 & Fail \\ \hline
+        Rise Time (ps) & 6.49 & 8.42 & 7.41 & 9.84 \\ \hline
+        Fall Time (ps) & 6.74 & 7.75 & 8.43 & 10.38 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Post-Layout Integrated Mux and Pre-Driver Corners at Sub-Nominal Supply Tracks and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:post_layout_corners_125}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{HOT_TEMP_PL_SUBNOMINAL_BAYEZ.png}
+    \vspace{1mm}
+    \caption{Simulated post-layout clean-supply eye diagrams for the integrated block at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:post_layout_eyes_125_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{HOT_TEMP_PL_SUBNOMINAL_BAYEZ_NOISY.png}
+    \vspace{1mm}
+    \caption{Simulated post-layout eye diagrams with $10\text{ mV}_{pp}$ noise applied to supply tracks at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:post_layout_eyes_125_noise}
+\end{figure}
+
+\clearpage
+
+\subsubsection*{Post-Layout SS Corner Failure Analysis}
+
+The post-layout simulation results show that the Slow-Slow (SS) process corner completely fails across all evaluated temperatures. This malfunction is explicitly caused by two clear non-idealities:
+\begin{itemize}
+    \item \textbf{Bandwidth Limitation at Multiplexer Output:} The introduction of layout parasitic resistances and capacitances severely narrows the operating bandwidth at the shared multiplexer output node. In the slow device tracking limits and Due to the reduced current capabilities under sub-nominal supplies, the charging paths cannot toggle quickly enough, collapsing the horizontal eye opening entirely.
+    \item \textbf{Pre-Driver Threshold Failure:} Due to the reduced current capabilities under sub-nominal supplies, the pre-driver cell fails to achieve proper input switching thresholds. This failure heavily distorts the internal transition edges and pushes the vertical eye crossing point up near the top rail ($\sim$800~mV), destroying signal functionality.
+\end{itemize}
+
+\subsection*{Super-Nominal Supply Characterization ($V_{DD,core} = 880\text{ mV}$, $V_{DD,drv} = 990\text{ mV}$)}
+\subsubsection*{PVT Characterization Data and Waveform Analysis}
+
+The quantitative performance matrices and corresponding multi-corner eye diagram captures for the integrated block under super-nominal supply constraints are detailed below.
+
+% ==================================================
+% 1. NOMINAL TEMPERATURE SECTION (27 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 980 & 980 & 980 & 980 \\ \hline
+        Eye Width (ps) & 31.040 & 30.989 & 30.998 & 30.938 \\ \hline
+        Eye Crossing (mV) & $\sim$503 & $\sim$509 & $\sim$483 & $\sim$484 \\ \hline
+        Deterministic Jitter (fs) & 383.7 & 396.8 & 400 & 345.38 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 202.46 & 409.9 & 389.3 & 736.62 \\ \hline
+        PSIJ (fs/mV) & 20.2 & 40.9 & 38.9 & 73.6 \\ \hline
+        Total Jitter (fs) & 586.16 & 806.73 & 789.3 & 1082   \\ \hline
+        Rise Time (ps) & 4.0 & 4.7 & 4.5 & 5.3 \\ \hline
+        Fall Time (ps) & 4.2 & 4.7 & 4.8 & 4.7 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Super-Nominal Supply Tracks and $T = 27^{\circ}\text{C}$ (Nominal)}
+    \label{tab:integrated_corners_27}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{clean_nominal_temp_SN_PL.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under super-nominal supply configurations at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{NOISY_nominal temp_SN_PL.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to super-nominal supply tracks at $T = 27^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_27_noise}
+\end{figure}
+
+% ==================================================
+% 2. COLD TEMPERATURE SECTION (-40 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 980 & 980 & 980 & 980 \\ \hline
+        Eye Width (ps) & 31.098 & 31.065 & 31.049 & 31.030 \\ \hline
+        Eye Crossing (mV) & $\sim$458 & $\sim$492 & $\sim$416 & $\sim$456 \\ \hline
+        Deterministic Jitter (fs) & 359.896 & 376.182 & 390.145 & 369.903 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 218.548 & 436.412 & 392.104 & 710.093 \\ \hline
+        PSIJ (fs/mV) & 21.855 & 43.641 & 39.210 & 71.009 \\ \hline
+        Total Jitter (fs) & 578.444 & 812.594 & 782.249 & 1079.996 \\ \hline
+        Rise Time (ps) & 4.653 & 5.690 & 5.029 & 6.266 \\ \hline
+        Fall Time (ps) & 4.614 & 5.055 & 5.319 & 5.914 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Super-Nominal Supply Tracks and $T = -40^{\circ}\text{C}$ (Cold Extreme)}
+    \label{tab:integrated_corners_40}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{clean_COLD_temp_SN_PL.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under super-nominal supply configurations at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{NOISY_COLD_TEMP_SN_PL.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to super-nominal supply tracks at $T = -40^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_40_noise}
+\end{figure}
+
+\clearpage
+
+% ==================================================
+% 3. HOT TEMPERATURE SECTION (125 C)
+% ==================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        Specification & FF & FS & SF & SS \\ \hline
+        Swing (mV) & 980 & 980 & 980 & 980 \\ \hline
+        Eye Width (ps) & 30.923 & 30.910 & 30.902 & 30.881 \\ \hline
+        Eye Crossing (mV) & $\sim$494 & $\sim$534 & $\sim$454 & $\sim$507 \\ \hline
+        Deterministic Jitter (fs) & 419.274 & 418.163 & 414.368 & 366.649 \\ \hline
+        PSIJ at 10 mVpp Noise (fs) & 158.980 & 355.937 & 352.032 & 669.351 \\ \hline
+        PSIJ (fs/mV) & 15.898 & 35.594 & 35.203 & 66.935 \\ \hline
+        Total Jitter (fs) & 578.254 & 774.100 & 766.363 & 1036.000 \\ \hline
+        Rise Time (ps) & 5.326 & 6.477 & 5.878 & 7.301 \\ \hline
+        Fall Time (ps) & 5.651 & 6.297 & 6.702 & 7.597 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Integrated Mux and Pre-Driver Corners at Super-Nominal Supply Tracks and $T = 125^{\circ}\text{C}$ (Hot Extreme)}
+    \label{tab:integrated_corners_125}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{clean_HOT_temp_SN_PL.png}
+    \vspace{1mm}
+    \caption{Simulated clean-supply eye diagrams for the integrated block under super-nominal supply configurations at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_clean}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{NOISY_nominal temp_SN_PL.png}
+    \vspace{1mm}
+    \caption{Simulated eye diagrams with $10\text{ mV}_{pp}$ noise applied to super-nominal supply tracks at $T = 125^{\circ}\text{C}$. The quadrant arrangement displays the process corners in the following order: Top-Left (1) Slow-Slow, Top-Right (2) Fast-Slow, Bottom-Left (3) Slow-Fast, and Bottom-Right (4) Fast-Fast.}
+    \label{fig:integrated_eyes_125_noise}
+\end{figure}
+
+\subsubsection*{ Observations}
+
+Under the boosted voltage configuration of the super-nominal rails ($990\text{ mV}$), the Slow-Slow (SS) process corner demonstrates highly robust performance across all temperature regions. The increased voltage drive overcomes the intrinsic subthreshold limitations and charging bottlenecks of the slow-device tracking fabrics. This results in stable horizontal eye openings exceeding $30.8\text{ ps}$ and cleanly centered mid-rail crossing voltage points without experiencing the threshold distortions seen on degraded power grids.
+
+\subsubsection*{Supply Noise Sensitivity and Jitter Margin Evaluation}
+
+To quantify the design's resilience against high-frequency power supply noise at ($-40^{\circ}\text{C}$), the Power Supply Induced Jitter (PSIJ) sensitivity was analyzed under sub-nominal voltage constraints. Based on post-layout corner extractions, the normalized PSIJ sensitivity parameter was determined to be $76.67\text{ f}s/\text{mV}$. Given the maximum allocated system power supply induced jitter budget ($PSIJ_{\text{budget}} = 962.5\text{ f}s$), the peak-to-peak supply noise tolerance ($\Delta V_{DD,\text{max}}$) is derived using the standard sensitivity relation:
+
+\begin{equation}
+\Delta V_{DD,\text{max}} = \frac{PSIJ_{\text{budget}}}{PSIJ_{\text{sens}}} = \frac{962.5\text{ f}s}{76.67\text{ f}s/\text{mV}} \approx 12.55\text{ mV}_{pp}
+\end{equation}
+
+This analytical calculation demonstrates that despite the performance degradation and tracking mismatches typical of the slow-device tracking fabrics at low temperatures, the boosted super-nominal supply rail configuration provides sufficient current drive and voltage headroom to tolerate high-frequency supply fluctuations up to $12.55\text{ mV}_{pp}$ on both suppies. Consequently, the integrated multiplexer and pre-driver block successfully contain jitter-induced timing uncertainty well within the limits defined for PCIe 6.0 physical layer compliance.
+
+
+\subsection{Post-Layout Power Consumption for the LSB Summary }
+% =========================================================================
+% POST-LAYOUT POWER CONSUMPTION SUMMARY (TYPICAL CORNER ONLY)
+% VDD = 0.8 V (Core MUX), VDD2 = 0.9 V (Pre-Driver) at T = 27°C
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{14pt}
+    \small
+    \begin{tabular}{|l|c|}
+        \hline
+        \textbf{Circuit Component Block} & \textbf{Typical-Typical (TT) Power ($\mu$W)} \\ \hline
+        Multiplexer Core (\texttt{MUX\_POWER}) & 60.05 \\ \hline
+        Pre-Driver Buffer Network (\texttt{PRE\_DRIVER\_POWER}) & 16.55 \\ \hline
+        \textbf{Total Integrated Block Power} & \textbf{76.59} \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Post-Layout Single-Ended Power Performance at the Typical Operating Boundary ($V_{DD} = 0.8\text{ V}$, $V_{DD2} = 0.9\text{ V}$, $T = 27^{\circ}\text{C}$)}
+    \label{tab:post_layout_tt_power}
+\end{table}
+
+
+
+
+% =========================================================================
+% 1. POST-LAYOUT POWER SUMMARY FOR SUB-NOMINAL CONFIGURATION
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{12pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{SS ($\mu$W)} & \textbf{FS ($\mu$W)} & \textbf{SF ($\mu$W)} & \textbf{FF ($\mu$W)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 61.07 & 65.07 & 64.78 & 67.20 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 61.87 & 66.72 & 66.21 & 70.50 \\ \hline
+        Hot ($125^\circ\text{C}$) & 66.33 & 74.48 & 73.57 & 84.36 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Post-Layout Single-Ended Total Power Dissipation Across PVT Boundaries for the Sub-Nominal Configuration ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$)}
+    \label{tab:post_layout_subnominal_power}
+\end{table}
+
+% =========================================================================
+% 2. POST-LAYOUT POWER SUMMARY FOR SUPER-NOMINAL CONFIGURATION
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{12pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{SS ($\mu$W)} & \textbf{FS ($\mu$W)} & \textbf{SF ($\mu$W)} & \textbf{FF ($\mu$W)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 80.84 & 85.24 & 84.38 & 92.13 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 82.97 & 88.87 & 88.01 & 97.68 \\ \hline
+        Hot ($125^\circ\text{C}$) & 89.69 & 100.70 & 99.96 & 117.20 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Post-Layout Single-Ended Total Power Dissipation Across PVT Boundaries for the Super-Nominal Configuration ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$)}
+    \label{tab:post_layout_supernominal_power}
+\end{table}
+
+\subsection{Pre-Layout Power Consumption for the LSB Summary }
+% =========================================================================
+% 1. PRE-LAYOUT POWER SUMMARY FOR THE NOMINAL TYPICAL-TYPICAL (TT) CORNER
+% Operating at T = 27°C with core supply VDD = 0.8 V and pre-driver VDD2 = 0.9 V
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{14pt}
+    \small
+    \begin{tabular}{|l|c|}
+        \hline
+        \textbf{Circuit Component Block} & \textbf{Typical-Typical (TT) Power ($\mu$W)} \\ \hline
+        Multiplexer Core (\texttt{MUX\_POWER}) & 28.92 \\ \hline
+        Pre-Driver Buffer Network (\texttt{PRE\_DRIVER\_POWER}) & 17.30 \\ \hline
+        \textbf{Total Integrated Block Power} & \textbf{46.22} \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Pre-Layout Single-Ended Power Performance at the Nominal Operating Boundary ($V_{DD} = 0.8\text{ V}$, $V_{DD2} = 0.9\text{ V}$, $T = 27^{\circ}\text{C}$)}
+    \label{tab:pre_layout_tt_power}
+\end{table}
+
+% =========================================================================
+% 2. PRE-LAYOUT POWER SUMMARY FOR SUB-NOMINAL CONFIGURATION (Across Process Corners)
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{12pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{SS ($\mu$W)} & \textbf{FS ($\mu$W)} & \textbf{SF ($\mu$W)} & \textbf{FF ($\mu$W)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 37.68 & 38.16 & 37.27 & 39.81 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 38.41 & 40.06 & 38.99 & 43.38 \\ \hline
+        Hot ($125^\circ\text{C}$) & 41.74 & 47.57 & 46.09 & 57.14 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Pre-Layout Single-Ended Total Power Dissipation Across PVT Boundaries for the Sub-Nominal Configuration ($V_{DD,MUX} = 720\text{ mV}$, $V_{DD,PRE} = 810\text{ mV}$)}
+    \label{tab:pre_layout_subnominal_power}
+\end{table}
+
+% =========================================================================
+% 3. PRE-LAYOUT POWER SUMMARY FOR SUPER-NOMINAL CONFIGURATION (Across Process Corners)
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{12pt}
+    \small
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Temperature} & \textbf{SS ($\mu$W)} & \textbf{FS ($\mu$W)} & \textbf{SF ($\mu$W)} & \textbf{FF ($\mu$W)} \\ \hline
+        Cold ($-40^\circ\text{C}$) & 48.20 & 52.35 & 50.52 & 59.16 \\ \hline
+        Nominal ($27^\circ\text{C}$) & 50.11 & 55.52 & 53.80 & 64.05 \\ \hline
+        Hot ($125^\circ\text{C}$) & 55.79 & 66.03 & 64.39 & 82.02 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Pre-Layout Single-Ended Total Power Dissipation Across PVT Boundaries for the Super-Nominal Configuration ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$)}
+    \label{tab:pre_layout_supernominal_power}
+\end{table}
+
+% =========================================================================
+% PRE-LAYOUT VS. POST-LAYOUT CRITICAL POWER COMPARISON MATRIX
+% =========================================================================
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{14pt}
+    \small
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Performance Boundary} & \textbf{Pre-Layout Power ($\mu$W)} & \textbf{Post-Layout Power ($\mu$W)} \\ \hline
+        \textbf{Typical Power} (TT / 27$^{\circ}\text{C}$) & 46.22 & 76.59 \\ \hline
+        \textbf{Worst-Case Power} (FF / 125$^{\circ}\text{C}$) & 82.02 & 117.20 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Power Envelope Comparison Matrix: Typical vs. Worst-Case Operating Boundaries Which is at ($V_{DD,MUX} = 880\text{ mV}$, $V_{DD,PRE} = 990\text{ mV}$)}
+    \label{tab:direct_pvt_power_comparison}
+\end{table}
+
+
+% =========================================================================
+% COMPREHENSIVE PERFORMANCE SUMMARY MATRIX: PRE-LAYOUT VS. POST-LAYOUT
+% =========================================================================
+\subsection{Summary of results}
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{7pt}
+    \small
+    \begin{tabular}{|l|cc|cc|}
+        \hline
+        & \multicolumn{2}{c|}{\textbf{Pre-Layout}} & \multicolumn{2}{c|}{\textbf{Post-Layout}} \\ \cline{2-5}
+        \textbf{Metric} & \textbf{Typical (TT)} & \textbf{Sub-Nom (SS/125$^{\circ}$C)} & \textbf{Typical (TT)} & \textbf{Sub-Nom (SF/125$^{\circ}$C))} \\ \hline
+        \hline
+        \textbf{Rise Time (ps)} & 4.50 & 15.34 & 6.16 & 7.41 \\ \hline
+        \textbf{Fall Time (ps)} & 4.50 & 13.77 & 6.22 & 8.43 \\ \hline
+        \textbf{Eye Width (ps)} & 31.10 & 30.80 & 31.03 & 30.35 \\ \hline
+        \textbf{Deterministic Jitter (fs)} & 155.29 & 181.00 & 225.04 & 550.40 \\ \hline
+        \textbf{PSIJ Sensitivity (fs/mV)} & 27.95 & 25.90 & 37.82 & 34.68 \\ \hline
+    \end{tabular}
+    \vspace{2mm}
+    \caption{Comprehensive Results Summary: Direct Specification Comparison Across  Design Domains (typical and worst case in both pre and post layout simulations)}
+    \label{tab:final_results_summary_full}
+\end{table}
+
+The comparative performance summary presented in Table \ref{tab:final_results_summary_full} demonstrates that the integrated LSB transmitter slice successfully meets the jitter targets defined in Table \ref{tab:pcie6_jitter_budget_MUXPRE}. While post-layout extraction reveals that the worst-case deterministic jitter (DJ) of the LSB slice marginally exceeds its locally allocated design target, the cumulative total jitter (DJ) for the overall transmitter system remains well within the total PCIe 6.0 standard specification of 625fs.

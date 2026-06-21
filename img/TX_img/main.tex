@@ -1,0 +1,56 @@
+% ==========================================
+% THESIS OUTLINE
+% ==========================================
+
+\chapter{Introduction}
+    \section{Historical Evolution: From Parallel to Serial}
+        \subsection{The Legacy of Parallel PCI}
+        \subsection{The Shift to Serial PCIe}
+    \section{PCIe Standard Overview}
+        \subsection{Evolution of PCIe Generations}
+        \subsection{Protocol Architecture}
+        \subsection{PCIe 6.0 Innovations}
+        \subsection{PAM4 Signaling Fundamentals}
+            \subsubsection{SNR Trade-offs and Linearity Requirements}
+            \subsubsection{Forward Error Correction (FEC) Implications}
+    \section{Thesis Organization}
+
+\chapter{High-Speed Multiplexer Fundamentals and Architectures}
+    \section{Fundamentals of High-Speed Serialization}
+        \subsection{The Parallel-In Serial-Out (PISO) Concept}
+        \subsection{Serialization Rate Architectures}
+            \subsubsection{Full-Rate Architecture}
+            \subsubsection{Half-Rate Architecture}
+            \subsubsection{Quarter-Rate Architecture}
+        \subsection{Quarter-Rate Clocking Schemes}
+            \subsubsection{50\% Duty Cycle Approach}
+            \subsubsection{25\% Duty Cycle Approach (Proposed)}
+    \section{Survey of Multiplexer Circuit Topologies}
+        \subsection{Topology 1: Passive Transmission Gate (TG)}
+        \subsection{Topology 2: Current-Mode Logic (CML)}
+        \subsection{Topology 3: Active Tri-State Inverter Logic}
+    \section{Architecture Selection and Comparative Analysis}
+        \subsection{Power-Delay Product (PDP) Comparison}
+        \subsection{Noise Margin and Linearity Analysis}
+        \subsection{Justification for Tri-State Selection}
+
+\chapter{Circuit Implementation and Optimization Strategy}
+    \section{Proposed Quarter-Rate 4:1 Multiplexer Architecture}
+        \subsection{Block Diagram and Signal Flow}
+        \subsection{Timing and Phase Interleaving Scheme}
+    \section{Systematic Sizing and Optimization Methodology}
+        \subsection{Phase 1: Skew Balancing (Ratio Optimization)}
+        \subsection{Phase 2: Bandwidth Extension (Parametric Sweeping)}
+        \subsection{Phase 3: Eye Crossing Level Optimization}
+    \section{Pre-Driver and Logic Chain Sizing}
+
+\chapter{Simulation Results and Performance Verification}
+    \section{Transient Response Analysis}
+    \section{Signal Integrity Analysis at 64 Gb/s}
+        \subsection{Eye Diagram Measurements}
+        \subsection{Jitter Decomposition}
+    \section{Comparative Performance Summary}
+
+\chapter{Conclusion}
+    \section{Summary of Contributions}
+    \section{Future Work}

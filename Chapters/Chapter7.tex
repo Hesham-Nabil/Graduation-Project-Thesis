@@ -1,0 +1,264 @@
+\chapter{Literature Survey and Architecture Selection}
+\label{Chapter7}
+\lhead{Chapter 7. \emph{Literature Survey}}
+
+This chapter reviews state-of-the-art techniques for bandwidth extension, gain control, and equalization. 
+We compare various topologies to justify the architectural choices made for the PCIe 6.0 receiver.
+
+% =====================================================================
+% SECTION 1: INPUT NETWORK (Bandwidth Extension)
+% =====================================================================
+\section{Input Network: Bandwidth Extension Techniques}
+
+The input bandwidth of the receiver is dominated by the large parasitic capacitance at the pad, comprising ESD diodes ($C_{ESD}$), 
+pad metalization ($C_{pad}$), and gate capacitance ($C_{gate}$). In a simple RC network, the bandwidth is limited to a single dominant pole:
+\begin{equation}
+    BW_{RC} = \frac{1}{2\pi R C_{total}}
+\end{equation}
+To achieve 64 GT/s, the input bandwidth must be extended beyond these intrinsic RC limits using inductive peaking. 
+We analyzed five distinct topologies discussed in the foundational work by Shekhar et al. \cite{shekhar} and \cite{chen2017}.
+
+\subsection{Shunt Peaking}
+Shunt peaking is the simplest form of extension. It places an inductor $L_{shunt}$ in series with the load resistor $R_D$.
+\begin{itemize}
+    \item \textbf{Transfer Function:} The inductor introduces a zero ($z = -R/L$). This zero compensates for the dominant pole caused by the output capacitance.
+    \item \textbf{Performance:} A maximum BWER of $\approx 1.84$x is achieved.
+\end{itemize}
+
+\subsection{Bridged Shunt Peaking}
+This technique improves upon standard shunt peaking by adding a "bridging" capacitor $C_B$ in parallel with the shunt inductor $L_{shunt}$.
+\begin{itemize}
+    \item \textbf{Mechanism:} The capacitor $C_B$ allows high-frequency signal components to bypass the inductor. 
+    This introduces an additional pole and zero to the transfer function, providing more degrees of freedom to shape the frequency response and group delay.
+    \item \textbf{Performance:} Offers slightly higher bandwidth than standard shunt peaking with better group delay flatness.
+\end{itemize}
+
+\subsection{Series Peaking}
+Series peaking places an inductor $L_{series}$ between the driver output and the capacitive load.
+\begin{itemize}
+    \item \textbf{Mechanism (Pole Splitting):} The inductor separates the driver capacitance from the load capacitance. 
+    This "splits" the poles, isolating the heavy load capacitance at high frequencies and pushing the dominant pole out.
+    \item \textbf{Performance:} Offers a higher BWER of $\approx 2.5$x but typically does not introduce a zero, resulting in a 3-pole system.
+\end{itemize}
+
+\subsection{Bridged Shunt-Series Peaking}
+This is the most complex passive peaking network employing discrete inductors. It combines the pole-splitting of series peaking with the zero-compensation of bridged shunt peaking.
+\begin{itemize}
+    \item \textbf{Components Added:} 2 Inductors ($L_{shunt}, L_{series}$) + 1 Capacitor ($C_{bridge}$).
+    \item \textbf{Mechanism:} By combining all previous effects, this network creates a high-order system (4 poles, 2 zeros) that allows for aggressive bandwidth extension.
+    \item \textbf{Performance:} Can achieve the highest theoretical BWER of $\approx 4.0$x \cite{shekhar}.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % --- Row 1 ---
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=.5\textwidth]{img/Termination_VGA_img/shunt.png}
+        \centerline{(a)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=.5\textwidth]{img/Termination_VGA_img/bshunt.png}
+        \centerline{(b)}
+    \end{minipage}
+
+    \vspace{0.5cm} % Gap between rows
+
+    % --- Row 2 ---
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=.6\textwidth]{img/Termination_VGA_img/series.png}
+        \centerline{(c)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=.5\textwidth]{img/Termination_VGA_img/bss.png}
+        \centerline{(d)}
+    \end{minipage}
+
+    \caption{Comparison of passive bandwidth extension topologies: (a) Shunt Peaking, (b) Bridged Shunt Peaking, (c) Series Peaking, and (d) Bridged Shunt-Series Peaking.}
+    \label{fig:bw_extension_grid}
+\end{figure}
+
+\subsection{T-Coil Extension}
+The T-coil is the standard for high-speed ESD protection and bandwidth extension. It consists of two coupled inductors ($L_1, L_2$) and a bridge capacitor ($C_B$).
+
+\begin{itemize}
+    \item \textbf{Operation Principle:} The T-coil acts as a bridge network. At low frequencies, the signal passes through the inductors to the termination resistor. 
+    At high frequencies, the negative mutual coupling ($k$) between the inductors helps to cancel out the effect of the parasitic capacitance $C_{ESD}$.
+    \item \textbf{Constant Impedance:} Unlike simple peaking which varies the input impedance with frequency, 
+    a properly designed T-coil maintains a constant resistive input impedance ($Z_{in} \approx R$) over a very wide bandwidth. 
+    This is crucial for maintaining good Return Loss (RL).
+    \item \textbf{Performance:} An asymmetric T-coil can theoretically achieve a BWER of $2.8$x to $4$x, significantly outperforming simple inductor peaking.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.4\textwidth]{img/Termination_VGA_img/tcoil.png}
+    \caption[T-Coil Networks]{T-Coil models including Asymmetric and Symmetric configurations.}
+    \label{fig:t_coil}
+\end{figure}
+
+\subsection{Comparison of Techniques}
+Table \ref{tab:peaking_comparison} summarizes the trade-offs between the five analyzed techniques. 
+The pole/zero count represents the total order of the transfer function. The BWER is provided for two distinct design points: 
+a maximally flat response (0 dB peaking) and the maximum achievable bandwidth extension (which typically incurs peaking). 
+Group delay variation is a critical metric for maintaining signal integrity in the time domain.
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Topology} & \textbf{No. of Zeros/Poles} & \textbf{BWER (0 dB)} & \textbf{Max BWER (Peaking)} & \textbf{Group Delay} & \textbf{Components Added} \\ \hline
+\textbf{Shunt Peaking} & 1 / 2 & 1.72x & 1.84x (1.5 dB) & -- & 1 L \\ \hline
+\textbf{Bridged Shunt} & 2 / 3 & 1.83x & 1.83x (1.5 dB) & High Variation & 1 L, 1 C \\ \hline
+\textbf{Series Peaking} & 0 / 3 & 2.52x & 3.17x (2 dB) & Low Variation & 1 L \\ \hline
+\textbf{Bridged Shunt-Series} & 2 / 5 & 3.92x & 4x (2 dB) & Maximally Flat & 2 L, 1 C \\ \hline
+\textbf{Asymmetric T-Coil} & \textbf{1 / 4} & \textbf{3.93x} & \textbf{5.59 (2 dB)} & \textbf{Samll Variation} & \textbf{Coupled L, 1 C} \\ \hline
+\end{tabular}
+}
+\caption{Comparison of Bandwidth Extension Techniques (Data derived from \cite{shekhar})}
+\label{tab:peaking_comparison}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{img/Termination_VGA_img/bwcomp.png}
+    \caption[Group Delay Comparison]{Normalized GD versus normalized frequency for (a) bridged-shunt peaking. (b) Series peaking. (c) Bridged-shunt series
+peaking. (d) Asymmetric T-coil. Adapted from \cite{chen2017}.}
+    \label{fig:group_delay}
+\end{figure}
+
+% =====================================================================
+% SECTION 2: VGA (Gain Control)
+% =====================================================================
+\section{Survey of Gain Control Topologies}
+The fundamental voltage gain of a common-source amplifier is given by $A_v \approx g_m R_L$. Consequently, 
+variable gain can be achieved by tuning either the effective transconductance ($g_m$) or the output load impedance ($R_L$). 
+We analyzed three primary topology classes as discussed in \cite{razavi} and \cite{kong2019}.
+
+\begin{figure}[H]
+    \centering
+    \framebox{\includegraphics[width=.3\textwidth]{img/Termination_VGA_img/vgatunemethod.png}}
+    \caption{VGA tuning methods}
+    \label{fig:vga_tune}
+\end{figure}
+
+\subsection{Topology 1: Passive Attenuation}
+The simplest method to control signal amplitude is through passive attenuation prior to amplification. 
+This is typically implemented using resistive or capacitive dividers that scale the input signal. While this approach provides excellent linearity, 
+it imposes a design constraint where the total series resistance ($R_1 + R_2$) must be significantly larger than the termination resistance to avoid loading the input matching network.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.3\textwidth]{img/Termination_VGA_img/passivevga.png}
+    \caption[Passive Attenuators]{Passive gain control using resistive and capacitive divider networks.}
+    \label{fig:vga_passive}
+\end{figure}
+
+\subsection{Topology 2: Active Analog Control}
+Active analog topologies manipulate the bias point or load of the amplifier directly. This category includes two common techniques:
+
+\textbf{Variable Load ($R_L$ Tuning):} This method uses a diode-connected load or a triode-region MOS transistor as a variable resistor. 
+However, since the dominant pole of the amplifier is located at the output node ($\omega_p \propto 1/R_L C_L$), 
+changing the load resistance directly alters the bandwidth \cite{razavi}. 
+This creates an unacceptable Gain-Bandwidth tradeoff where high gain results in reduced bandwidth.
+
+\textbf{Variable Transconductance ($g_m$ Tuning):} This category encompasses techniques that modulate the amplifier's transconductance, 
+either by directly varying the tail current (Current Control) or by diverting current using steering topologies such as the Gilbert Cell (4-Quadrant Multiplier). 
+While these architectures are standard in RF mixing applications, they pose significant challenges for baseband VGA design. Specifically, 
+altering the current directly impacts the output common-mode voltage ($V_{out,CM} = V_{DD} - I_{load}R_L$), shifting the operating points of subsequent stages. 
+Furthermore, the limited voltage headroom and inherent non-linearity of the steering pairs severely degrade the signal integrity required for multi-level PAM4 signaling.
+
+\begin{figure}[H]
+    \centering
+    % --- Image 1: Variable Load ---
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        % Replace with your actual file name
+        \includegraphics[width=.8\textwidth]{img/Termination_VGA_img/rlvga.png} 
+        \centerline{\footnotesize (a) Variable Load}
+    \end{minipage}
+    \hfill
+    % --- Image 2: 2-Quadrant / Current Control ---
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        % Replace with your actual file name
+        \includegraphics[width=.8\textwidth]{img/Termination_VGA_img/2quadvga.png} 
+        \centerline{\footnotesize (b) 2-Quadrant Multiplier}
+    \end{minipage}
+    \hfill
+        % --- Image 3: Current Steering (Gilbert) ---
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        % Replace with your actual file name
+        \includegraphics[width=.8\textwidth]{img/Termination_VGA_img/4quadvga.png} 
+        \centerline{\footnotesize (c) Current Steering}
+    \end{minipage}
+
+    \caption[Active Analog VGAs]{Active analog control methods: (a) Variable Load. (b)2-Quadrant Multiplier. (c) Current Steering (Gilbert Cell).}
+    \label{fig:vga_analog}
+\end{figure}
+
+\subsection{Topology 3: Active Digital Control (Source Degeneration)}
+To overcome the bandwidth and linearity limitations of the previous topologies, we selected the Source-Degenerated Differential Pair. In this architecture, 
+a variable resistance $R_S$ is placed between the source terminals of the input pair. The effective gain becomes approximately $A_v \approx R_L/R_S$.
+
+This topology offers two critical advantages for PCIe 6.0 \cite{kong2019}:
+\begin{itemize}
+    \item \textbf{Gain-Independent Bandwidth:} Because the output resistance $R_L$ remains fixed, the output pole is constant regardless of the gain setting.
+    \item \textbf{Linearization:} The resistive degeneration linearizes the effective transconductance ($G_{m,eff} \approx 1/R_S$), allowing the amplifier to handle large input swings with low distortion.
+\end{itemize}
+
+\subsubsection*{Digital Implementation}
+To provide precise, digitally controlled gain steps, the variable degeneration resistance $R_S$ is implemented as a binary-weighted resistor bank. 
+As shown in Figure \ref{fig:vga_digital}, the bank consists of parallel branches containing resistors ($R_S/2$) and NMOS switches controlled by 
+digital bits ($b_0 \dots b_5$). By switching these resistors in and out, we can modulate the degeneration resistance in discrete steps. 
+This digital control is inherently more robust to PVT variations than analog control voltages and interfaces seamlessly with the digital adaptation loops.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.35\textwidth]{img/Termination_VGA_img/digitalvga.png}
+    \caption[Digital VGA]{Digital VGA implementation using digitally controlled source degeneration resistance bank.}
+    \label{fig:vga_digital}
+\end{figure}
+
+\subsubsection*{Hybrid Split-Termination}
+To further extend the dynamic range for very large input signals, a hybrid approach can be employed. The $50\Omega$ input termination is split into two $25\Omega$ segments, creating a passive attenuation path. 
+This effectively provides a ``Dual-Mode'' operation: a Full Gain Path for weak signals and a Half Gain Path for strong signals. 
+This hybrid combination of passive attenuation and active degeneration ensures the receiver can handle the full dynamic range of the PCIe channel without saturation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.35\textwidth]{img/Termination_VGA_img/hybridvga.png}
+    \caption[Hybrid VGA]{Hybrid VGA architecture combining passive split-termination attenuation with active gain control.}
+    \label{fig:vga_hybrid}
+\end{figure}
+
+% =====================================================================
+% SECTION 3: CTLE (Equalization Architectures)
+% =====================================================================
+\section{CTLE Architectures}
+Due to the high channel loss at 16 GHz, the CTLE design is critical. We analyzed several topologies.
+
+\input{Chapters/CTLE_parts/intro}
+\input{Chapters/CTLE_parts/passive}
+\input{Chapters/CTLE_parts/sd}
+\input{Chapters/CTLE_parts/tp}
+\input{Chapters/CTLE_parts/nc}
+\input{Chapters/CTLE_parts/pai}
+\input{Chapters/CTLE_parts/assfb}
+\input{Chapters/CTLE_parts/comp}
+
+% =====================================================================
+% SECTION 4: DFE (Digital Equalization)
+% =====================================================================
+\section{DFE Architectures and Implementation}
+
+\input{Chapters/DFE_parts/arc} 
+\input{Chapters/DFE_parts/comparators}
+\input{Chapters/DFE_parts/papers}

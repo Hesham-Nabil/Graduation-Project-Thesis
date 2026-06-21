@@ -191,35 +191,32 @@ Conversely, at the maximum gain setting (7~dB), the coarse degeneration branches
 
 \begin{figure}[H]
     \centering
-
-    % --- Top Row: 7 dB Gain Step Configuration ---
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{vga_assets/7db_scurve.pdf} 
+        \includegraphics[width=\textwidth]{img/Termination_VGA_img/7db_scurve.pdf} 
         \caption{Voltage Transfer Curve at 7 dB Gain}
         \label{fig:vga_scurve_7db}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{vga_assets/THD_7db.pdf} 
+        \includegraphics[width=\textwidth]{img/Termination_VGA_img/THD_7db.pdf} 
         \caption{THD Profile at 7 dB Gain}
         \label{fig:vga_thd_7db}
     \end{subfigure}
 
-    \vspace{0.4cm} % Vertical space between rows
+    \vspace{0.4cm} 
 
-    % --- Bottom Row: 1 dB Gain Step Configuration ---
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{vga_assets/1db_scurve.pdf} 
+        \includegraphics[width=\textwidth]{img/Termination_VGA_img/1db_scurve.pdf} 
         \caption{Voltage Transfer Curve at 1 dB Gain}
         \label{fig:vga_scurve_1db}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{vga_assets/THD_1db.pdf} 
+        \includegraphics[width=\textwidth]{img/Termination_VGA_img/THD_1db.pdf} 
         \caption{THD Profile at 1 dB Gain}
         \label{fig:vga_thd_1db}
     \end{subfigure}
@@ -228,7 +225,10 @@ Conversely, at the maximum gain setting (7~dB), the coarse degeneration branches
     \label{fig:vga_linearity}
 \end{figure}
 
-This compression behavior directly correlates with the Total Harmonic Distortion (THD) profiles. As summarized in Table~\ref{tab:thd_summary}, driving the VGA with a $200\,\text{mV}_{peak}$ signal yields a highly linear response (0.8\% THD) at minimum gain, whereas the same input amplitude at maximum gain pushes the THD to approximately 4.8\% due to the amplification of third-order intermodulation products. This verifies that the VGA provides adequate voltage headroom and maintains acceptable PAM4 signal integrity within the nominal operating window.
+This compression behavior directly correlates with the Total Harmonic Distortion (THD) profiles. As summarized in Table~\ref{tab:thd_summary}, 
+driving the VGA with a $200\,\text{mV}_{peak}$ signal yields a highly linear response (0.8\% THD) at minimum gain, 
+whereas the same input amplitude at maximum gain pushes the THD to approximately 4.8\% due to the amplification of third-order intermodulation products. 
+This verifies that the VGA provides adequate voltage headroom and maintains acceptable PAM4 signal integrity within the nominal operating window.
 
 \begin{table}[H]
     \centering
@@ -245,14 +245,14 @@ This compression behavior directly correlates with the Total Harmonic Distortion
 \end{table}
 
 \subsubsection*{PVT Corner Analysis}
-A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of the calibration networks. A total of 12 corners were simulated for each state, encompassing process variations (Slow-Slow and Fast-Fast), supply voltage fluctuations ($\pm 5\%$ VDD), and extreme temperature variations ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
+A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of 
+the calibration networks. A total of 12 corners were simulated for each state, encompassing process variations (Slow-Slow and Fast-Fast), 
+supply voltage fluctuations ($\pm 5\%$ VDD), and extreme temperature variations ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
 
 By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the tail current via the 3-bit $I_{DAC}$, the VGA was able to maintain its target gain profile, bandwidth, and common-mode voltage across all severe PVT shifts with minimum variations.
 
 \begin{figure}[H]
     \centering
-
-    % --- Row 1 ---
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{img/Termination_VGA_img/1db_corners.pdf} % Replace with 1st step e.g., 1db_corners.pdf

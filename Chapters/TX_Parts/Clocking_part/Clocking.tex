@@ -1,0 +1,721 @@
+\section{I/Q Divider}
+
+The IQ Divider is the primary frequency-translation element in the transmitter clocking path, responsible for converting the high-frequency PLL output into multiple phases at a lower fundamental frequency.
+
+\subsection{Architecture and Operation}
+The most common implementation for generating precise quadrature phases at high frequencies is a \textbf{Divide-by-2 circuit} composed of two cascaded differential static latches (Master and Slave) configured in a negative feedback loop.
+
+\begin{itemize}
+    \item \textbf{Master-Slave Configuration:} The two latches are connected in series, with the output of the slave latch cross-coupled and fed back to the input of the master latch.
+    
+    \item \textbf{Clocking:} The differential 16 GHz clock from the PLL drives the clock inputs of the latches in opposite phases.
+    
+    \item \textbf{Quadrature Generation:} Because the latches trigger on opposite edges of the high-speed clock, the master latch output is shifted by $90^\circ$ relative to the slave latch output. This produces the four fundamental quadrature phases ($0^\circ, 90^\circ, 180^\circ, 270^\circ$) at an 8 GHz frequency.
+    
+    \item \textbf{Static vs. Dynamic:} Static latches are preferred in many designs for their robustness across a wide frequency range and better tolerance to process variations compared to dynamic logic.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{IQ.jpg}
+    \caption{Divider as a master–slave arrangement of two latches. IN+/IN- are the differential input signals, while OUTI+/OUTI- and OUTQ+/OUTQ- are the two quadrature differential output signals.}
+    \label{fig:Wire Scaling}
+\end{figure}
+
+
+\subsection{Topology Selection}
+The choice of a clocked tri-state inverter-based latch over alternative structures like Current Mode Logic (CML) or dynamic logic is driven by several design requirements:
+
+\begin{itemize}
+    \item \textbf{Full-Swing Operation:} The tri-state inverter provides rail-to-rail output levels, ensuring high noise immunity and eliminating the need for additional level shifters before the pulse-shaping stage.
+    \item \textbf{Dynamic Power Scaling:} Power consumption is primarily dynamic, allowing for better efficiency in quarter-rate architectures where the distribution frequency is reduced to 8 GHz.
+    \item \textbf{PVT Robustness:} As a static implementation, it avoids the leakage and charge-sharing issues inherent in dynamic topologies, providing a stable $90^\circ$ phase relationship across all operating corners.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{c2mos.jpg}
+    \caption{Clocked CMOS ($C^2MOS$).}
+    \label{fig:Wire Scaling}
+\end{figure}
+
+
+\subsection{Negative Latch Schematic (Clocked $C^2$MOS)}
+\label{subsec:negative_latch_sim}
+
+The fundamental building block of the IQ divider is the differential static latch, implemented here using a \textbf{Clocked CMOS ($C^2$MOS)} topology. This structure is chosen for its high-speed performance and rail-to-rail output swing.
+
+\begin{itemize}
+    \item \textbf{Input Stage:} The schematic features a clocked tri-state inverter where the input signal is gated by the differential clock signals ($\text{CLK}$ and $\text{CLKb}$). This ensures that the input is only sampled during the active phase of the clock.
+    
+    \item \textbf{Storage Element:} A cross-coupled inverter pair (regenerative latch) is utilized to maintain the logic state when the input stage enters a high-impedance (tri-state) mode.
+    
+    \item \textbf{Operation:} When the clock is active, the tri-state inverter is enabled, and the latch transparently passes the input to the output. When the clock toggles, the input stage disconnects, and the cross-coupled structure holds the previous value, providing robust static operation and immunity to leakage.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{N_latch.png}
+    \caption{Negative Static Latch Schematic.}
+    \label{fig:Wire Scaling}
+\end{figure}
+
+\subsection{IQ Divider System Schematic}
+\label{subsec:iq_divider_system_sim}
+
+The complete IQ divider is formed by cascading two of the previously described latches (Master and Slave) in a closed-loop configuration.
+
+\begin{itemize}
+    \item \textbf{Negative Feedback Loop:} The differential outputs of the slave latch are cross-coupled and fed back to the inputs of the master latch. This inversion in the feedback path is what enables the frequency division (divide-by-2) functionality.
+    
+    \item \textbf{Quadrature Phase Generation:} 
+    \begin{itemize}
+        \item The Master Latch triggers on the rising edge of the clock.
+        \item The Slave Latch triggers on the falling edge of the clock.
+        \item This $180^\circ$ difference in the high-speed clock domain results in a precise $90^\circ$ phase shift at the divided output frequency, producing the $I$ and $Q$ phases ($0^\circ, 90^\circ, 180^\circ, 270^\circ$).
+    \end{itemize}
+    
+    \item \textbf{Simulation Setup:} The schematic is simulated with a 16 GHz differential input clock to verify the generation of stable 8 GHz quadrature outputs.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{IQ_divider.png}
+    \caption{I/Q Divider Schematic.}
+    \label{fig:Wire Scaling}
+\end{figure}
+
+\subsection{Transient Response Analysis}
+\label{subsec:transient_analysis}
+
+The transient simulation results verify the functional operation of the IQ divider, specifically its ability to perform frequency division and generate accurate quadrature phases.
+
+\begin{itemize}
+    \item \textbf{Frequency Division and Scaling:} The top two traces show the differential input clocks ($CLK$ and $CLKb$) operating at the high-speed PLL\ frequency of 16~GHz. The four output traces ($C4\_0$ through $C4\_270$) operate at exactly half that frequency (8~GHz), confirming the successful divide-by-2 operation required for a quarter-rate clocking system.
+    
+    \item \textbf{Quadrature Phase Generation:} The simulation confirms the $90^\circ$ phase relationship between the outputs. By observing the simulation markers, it is evident that the $90^\circ$ phase ($C4\_90$) is shifted by half a clock cycle of the 16~GHz input relative to the $0^\circ$ phase ($C4\_0$). This equates to exactly one-quarter of the 8~GHz output period ($T/4$).
+    
+    \item \textbf{Timing Accuracy:} The crossing points of the quadrature phases align precisely with the 400~mV common-mode level (indicated by horizontal markers H1, H2, H3, and H4). The symmetry observed in the rising and falling edges indicates low internal Duty Cycle Distortion (DCD) within the divider circuit itself.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{Transient.png}
+    \caption{Transient simulation waveforms of the IQ Divider showing the 16~GHz input clock and the generated 8~GHz quadrature phases ($I/Q$).}
+    \label{fig:Wire Scaling}
+\end{figure}
+
+\subsubsection{Initialization and Metastability Resolution}
+
+While the clocked $C^2$MOS topology provides robust static operation, the initial transient simulation revealed a severe startup vulnerability. Because the cross-coupled inverters in the master and slave latches are geometrically symmetrical, the divider is susceptible to metastability during power-up.
+
+\begin{itemize}
+    \item \textbf{The Metastability Problem:} If the internal nodes power up at or near the common-mode voltage (approximately 400 mV), the loop gain of the cross-coupled pair is perfectly balanced. As shown in the initial transient response, the circuit lingers in a metastable, mid-rail state for nearly 200 ns before thermal noise or minor asymmetric leakage finally pushes the latches into a valid logic state. In a multi-gigahertz transceiver system, this indeterminate startup delay could be unacceptable and can lead to severe synchronization failures downstream.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{metastability problem.png}
+    \caption{Initial transient simulation showing the outputs lingering in a metastable mid-rail state before oscillating.}
+    \label{fig:metastability_problem}
+    \label{fig:Wire Scaling}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Schematic Modification:} To break this perfectly balanced loop and force a deterministic startup, an asynchronous reset mechanism was introduced to the latch schematic. Dedicated pull-up and pull-down transistors were added to the internal storage nodes, driven by complementary \texttt{Reset} and \texttt{Resetb} signals. 
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{modified iq divider.png}
+    \caption{Modified $C^2$MOS latch schematic incorporating asynchronous Reset/Resetb transistors to force a known initial state.}
+    \label{fig:modified_iq_divider}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Resolved Transient Response:} When the reset signal is briefly asserted during the initial power-up phase, these auxiliary transistors overpower the cross-coupled pair, forcefully pulling the internal nodes to definitively high and low states. As demonstrated in the modified simulation results, the metastability dead-zone is completely eliminated. The 8 GHz quadrature phases ($0^\circ, 90^\circ, 180^\circ, 270^\circ$) begin toggling immediately and cleanly from $t = 0$, ensuring reliable and deterministic operation.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{modified iq results.png}
+    \caption{Resolved transient response showing immediate and clean generation of the 8 GHz quadrature phases with no metastable delay.}
+    \label{fig:modified_iq_results}
+\end{figure}
+
+\section{Pulse Generation: Symmetric AND Gate}
+
+Following the frequency translation in the I/Q Divider, the 8~GHz quadrature clocks possess a 50\% duty cycle. However, high-speed multiplexing architectures we took was the Quadrature-Rate which will require four non-overlapping clocks for the high speed serialization process. To achieve the target 25\% duty cycle required for the subsequent multiplexing stages, a dedicated pulse generation block is implemented.
+
+\subsection{Phase Overlap and Duty Cycle Conversion}
+
+The fundamental mechanism for generating the 25\% duty cycle clock is the logical AND operation of two adjacent quadrature phases. As shown in the system-level schematic, the $0^\circ$ phase (\texttt{C4\_0}) and the $90^\circ$ phase (\texttt{C4\_90}) are fed into a 2-input AND gate. 
+
+Because the $90^\circ$ phase is delayed by exactly one-quarter of the clock period relative to the $0^\circ$ phase, the two signals only overlap at a logic HIGH state for $T/4$. Consequently, the output of the AND gate (\texttt{C0\_25\%}) is a precise 8~GHz pulse train with a 25\% duty cycle. The schematic is simulated with a 20~fF load capacitor to accurately model the input capacitance of the succeeding driver stage.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{and2 schematic.png}
+    \caption{Symbol-level schematic of the pulse generator, demonstrating the logical AND of $0^\circ$ and $90^\circ$ phases to synthesize a 25\% duty cycle output (\texttt{C0\_25\%}) driving a 20~fF load.}
+    \label{fig:and2_schematic}
+\end{figure}
+
+\subsection{Transistor-Level Implementation (Symmetric Topology)}
+
+In standard digital standard-cell libraries, a NAND gate utilizes an asymmetric pull-down network consisting of a single series NMOS stack. At multi-gigahertz frequencies, this asymmetry is highly problematic. Depending on which input arrives last (the top transistor or the bottom transistor), the internal node capacitances discharge differently, leading to varying propagation delays. This data-dependent delay manifests directly as deterministic jitter.
+
+To ensure pristine timing accuracy for the 25\% duty cycle pulse, a \textbf{Symmetric AND Gate} topology was designed. 
+
+\begin{itemize}
+    \item \textbf{Dual-Stack Pull-Down Network:} The conventional single NMOS stack is replaced by two parallel series stacks (\texttt{N0}-\texttt{N1} and \texttt{N56}-\texttt{N2}). The gate connections are swapped between the two branches (IN1/IN2 on the left, IN2/IN1 on the right). This guarantees that regardless of which clock phase transitions last, the equivalent resistance and capacitive discharge path to ground remain perfectly identical, eliminating input-dependent skew.
+    \item \textbf{Pull-Up Network:} The PMOS pull-up network (\texttt{P0}, \texttt{P52}) operates in parallel, inherently maintaining symmetric charging characteristics.
+    \item \textbf{Output Buffering:} The symmetric NAND structure is followed by a high-speed inverter (\texttt{P8}, \texttt{N8}) to restore the signal polarity to a logical AND function and to provide the necessary drive strength to push the high-frequency pulses into the 20~fF load.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{and2 transistor level.png}
+    \caption{Transistor-level schematic of the Symmetric AND Gate, featuring a dual-stack NMOS pull-down network to eliminate input-dependent propagation delay and minimize deterministic jitter.}
+    \label{fig:and2_transistor}
+\end{figure}
+
+\subsection{Transient Simulation and Verification}
+
+To verify the functionality of the pulse generation stage and its ability to drive realistic downstream loads, a transient simulation was performed. By replicating the symmetric AND gate across all adjacent quadrature pairs ($0^\circ \text{ AND } 90^\circ$, $90^\circ \text{ AND } 180^\circ$, $180^\circ \text{ AND } 270^\circ$, $270^\circ \text{ AND } 0^\circ$), a complete set of four staggered quarter-rate clocks was synthesized.
+
+The simulation results exhibit the following critical performance metrics:
+
+\begin{itemize}
+    \item \textbf{Precise 25\% Duty Cycle:} The waveforms for \texttt{C0\_25\%} through \texttt{C3\_25\%} clearly demonstrate an active HIGH duration of exactly one-quarter of the clock period ($T/4$), with the signal remaining strictly LOW for the remaining $3T/4$.
+    \item \textbf{Non-Overlapping Phasing:} A fundamental requirement for high-speed multiplexing is the prevention of simultaneous conduction between parallel data paths. The transient plot confirms that as one phase completely transitions to a logic LOW, the subsequent phase begins its rising edge. This strict non-overlapping relationship guarantees contention-free data serialization in the subsequent driver stages.
+    
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{and2 simulation results.png}
+    \caption{Transient simulation demonstrating the generation of four robust, non-overlapping 25\% duty cycle clock phases (\texttt{C0\_25\%} to \texttt{C3\_25\%}) operating at 8~GHz.}
+    \label{fig:and2_transient_results}
+\end{figure}
+
+
+\section{Duty Cycle Correction and Buffering Chain}
+
+Following the synthesis of the quarter-rate clock, the signal must be distributed to the high-speed multiplexing stages. Maintaining signal integrity along this path is critical, requiring both active duty cycle management and an optimally sized buffer chain to drive the massive capacitive load of the multiplexer.
+
+
+
+\subsection{Input Capacitance Extraction: Transient Method}
+
+Before the clock can drive the 4:1 Serializer (MUX), an intermediate buffer chain is required. Designing an optimal Fanout-of-4 (FO4) buffer chain requires exact knowledge of both the load capacitance ($C_{load}$) of the 4:1 MUX and the input capacitance ($C_{in}$) of the first-stage unit inverter.
+
+Because standard PDK models do not directly expose the massive nonlinear gate capacitances operating at 8~GHz, the capacitance was extracted using a \textbf{Transient Integration Method}. The fundamental relationship between charge ($Q$), capacitance ($C$), and voltage ($V$) is:
+
+$$Q = CV \implies C = \frac{\Delta Q}{\Delta V}$$
+
+By expressing charge as the integral of current over time, the capacitance can be accurately measured by simulating the transient current spike required to charge the transistor gates from 0~V to VDD (0.8~V):
+
+$$C \approx \frac{\int I \, dt}{0.8}$$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{transient method.png}
+    \caption{Testbench schematic for transient capacitance extraction, isolating the input stage of the 4:1 MUX.}
+    \label{fig:transient_method_schematic}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{transient current.png}
+    \caption{Transient current spikes observed during the charging and discharging of the input gate capacitance. The area under the positive spike ($\int I \, dt$) represents the total injected charge.}
+    \label{fig:transient_current_waveform}
+\end{figure}
+
+Using the Virtuoso Calculator to integrate the transient current pulse and dividing by the 0.8~V swing, the input capacitance of the 4:1 MUX was extracted as \textbf{197.9 fF} ($\approx$ 200 fF). Applying the identical methodology to a minimum-sized unit inverter yielded a base input capacitance of \textbf{0.681 fF}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{input cap OF FOUR TO ONE MUX.png}
+    \caption{Calculator evaluation of the transient integral, yielding a MUX input capacitance of 197.9 fF.}
+    \label{fig:mux_cap_transient}
+\end{figure}
+
+\subsection{AC Method Verification}
+
+To rigorously verify the transient extraction, a secondary \textbf{AC Simulation Method} was performed. By injecting a small-signal AC voltage and measuring the imaginary component of the resulting current, the capacitance can be derived in the frequency domain:
+
+$$C = \frac{\text{Im}(I_{in})}{2 \pi f \cdot V_{ac}}$$
+
+Evaluating this expression at the target frequency yielded a measured capacitance of \textbf{195.0 fF}. The less than 2\% deviation between the transient method (197.9 fF) and the AC method (195.0 fF) highly validates the $\approx$ 200 fF target used for the buffer chain design.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{input cap of four to one mux ac.png}
+    \caption{Verification of the MUX input capacitance using the small-signal AC method, yielding 195 fF.}
+    \label{fig:mux_cap_ac}
+\end{figure}
+
+\subsection{Buffer Chain Sizing and Stage Calculation}
+
+With the extraction complete, the Method of Logical Effort was applied to design an optimal delay chain that minimizes deterministic jitter while providing massive drive strength. 
+
+\begin{itemize}
+    \item \textbf{$C_{in}$:} The input capacitance of the first logic gate (0.681 fF).
+    \item \textbf{$C_{load}$:} The total load capacitance of the 4:1 MUX ($\approx$ 200 fF).
+    \item \textbf{Electrical Effort ($H$):} The ratio of the load to the input capacitance ($H = C_{load} / C_{in}$).
+    \item \textbf{Path Effort ($F$):} For a simple chain of standard inverters with no branching ($B=1$) and standard logical effort ($G=1$), the total path effort simplifies to the electrical effort ($F=H$).
+\end{itemize}
+
+Targeting a standard Fanout of 4 (FO4) per stage to minimize the delay through the chain which is very important for the stability of the duty cycle correction circuit chosen, the ideal number of buffer stages ($N$) is calculated logarithmically:
+
+$$N = \log_4(F) = \log_4 \left( \frac{200\text{ fF}}{0.681\text{ fF}} \right)$$
+
+Evaluating the ratio gives a total path effort of roughly 293. The optimal number of stages is therefore:
+
+$$N = 4.1 \approx 5 \text{ Stages}$$
+
+While the logical effort calculation yields $N = 4.1$, a \textbf{5-stage progressively scaled inverter chain} was explicitly selected rather than rounding down, driven by two critical architectural requirements:
+
+\begin{itemize}
+    \item \textbf{Post-Layout Parasitic Margin:} The extracted $200\text{ fF}$ load strictly accounts for the raw gate capacitance of the 4:1 MUX. During physical implementation, the interconnect routing between the buffer chain and the multiplexer will inevitably introduce additional parasitic wiring capacitance. Selecting 5 stages provides the necessary drive-strength margin to absorb this unmodeled routing penalty without degrading the signal rise and fall times.
+    
+    \item \textbf{Polarity and Duty Cycle Preservation:} A single inverter flips signal polarity; therefore, an odd-stage chain would invert the meticulously synthesized 25\% duty cycle into an incorrect 75\% duty cycle. However, this 5-stage buffer chain is cascaded immediately after the control inverter of the preceding DCC block. Together, they form a 6-stage path. Because the total number of cascaded inversions is even, the entire sequence operates as a non-inverting buffer. 
+\end{itemize}
+
+This 5-stage configuration successfully provides the massive current multiplication required to drive the final multiplexer load while preserving the razor-sharp, active-HIGH 25\% pulse width established by the duty cycle correction circuit.
+
+\subsection{Overview of the Duty Cycle Correction (DCC)}
+
+While the symmetric AND gate generates an ideal pulse, Process, Voltage, and Temperature (PVT) variations, along with asymmetric routing parasitics, can degrade the pulse width as it travels through the clock network and buffering chain. Standard wireline transceivers often target a 50\% clock, but this specific quarter-rate multiplexing architecture strictly requires a 25\% duty cycle to prevent inter-symbol interference and data collision. 
+
+To guarantee this, a Duty Cycle Correction (DCC) circuit is placed before the serialization stage. The DCC actively monitors the pulse width and applies analog feedback to the buffer bias voltages, continuously tuning the rising and falling edges to lock the active HIGH duration to exactly 25\% of the clock period. 
+
+\subsubsection{System Architecture and Loop Dynamics}
+
+The DCC operates as a continuous-time, \textbf{second-order negative feedback system}. By translating the duty cycle of the high-speed clock into DC voltages, the loop adjusts the propagation delay of the rising and falling edges independently to correct duty cycle distortion that occurs across corners and temperature variations across the circuits and buffering chain.
+
+The stability and transient response of this feedback loop are governed by two dominant low-frequency poles:
+\begin{itemize}
+    \item \textbf{Loop Filter Pole ($p_1$):} Located at the output of the charge pump. This pole is formed by the output resistance of the charge pump ($R_{out,cp}$) and the massive $5\text{ pF}$ integration capacitors ($C_0$, $C_1$) that filter the high-speed ripple into a stable DC voltage.
+    \item \textbf{OTA Output Pole ($p_2$):} Located at the control voltage node (\texttt{Vctrl}). This is formed by the high output resistance of the Operational Transconductance Amplifier ($R_{out,ota}$) driving the parasitic gate capacitance ($C_{gs}$) of the current-starving transistors in the control stage, as well as the output self-parasitic capacitance of the OTA.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{dcc whole.png}
+    \caption{Complete top-level schematic of the Duty Cycle Correction (DCC) loop, illustrating the control stage, buffer chain, charge pumps, and the OTA error amplifier.}
+    \label{fig:dcc_whole}
+\end{figure}
+
+\subsubsection{Control Stage: Current Starved Inverter and Dynamic Range}
+
+The actuator of the DCC loop is the control stage, implemented as a \textbf{Current Starved Inverter}. This block translates the analog control voltage (\texttt{Vctrl}) into a variable time delay, directly modulating the pulse width of the clock.
+
+As shown in the schematic, the primary clock signal (\texttt{CLK\_IN}) drives the gates of the main inverter core (\texttt{P24}, \texttt{N26}). However, the source terminals of this core are not tied directly to VDD and GND. Instead, they are connected through current-limiting transistors (\texttt{P25}, \texttt{N27}) driven by \texttt{Vctrl}. 
+
+By altering \texttt{Vctrl}, the loop restricts the maximum current available to charge or discharge the subsequent gate capacitance, thereby slowing down or speeding up specific clock edges. To prevent the clock signal from being completely extinguished if the control voltage drops too low, weak, parallel "keeper" transistors (\texttt{P31}, \texttt{N33}) are included. These guarantee a finite maximum delay time, ensuring the loop can always recover from an extreme transient state.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{current starved inverter.png}
+    \caption{Schematic of the Current Starved Inverter. The main clock drives the inner inverter, while \texttt{Vctrl} modulates the available charging/discharging current to adjust edge delays.}
+    \label{fig:dcc_starved_inverter}
+\end{figure}
+
+To guarantee robust operation, the dynamic range of the control stage was evaluated against extreme input duty cycle distortions. Simulations verify that input duty cycles ranging from 22\% to 28\% fall comfortably within the controllable range of the circuit. Specifically, an input duty cycle of 22\% requires a \texttt{Vctrl} of approximately $630\text{ mV}$ to be corrected to 25\%, while an input of 28\% requires a \texttt{Vctrl} of approximately $280\text{ mV}$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{22 duty cycle at many vctrl.png}
+    \caption{Control stage dynamic range: A 22\% input duty cycle successfully corrected to the 25\% target at \texttt{Vctrl} $\approx$ 630 mV.}
+    \label{fig:dcc_dynamic_22}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{28 duty cycle at many vctrl.png}
+    \caption{Control stage dynamic range: A 28\% input duty cycle successfully corrected to the 25\% target at \texttt{Vctrl} $\approx$ 280 mV.}
+    \label{fig:dcc_dynamic_28}
+\end{figure}
+
+\subsubsection{Buffering Stage and Multiplexer Load}
+
+Immediately following the control stage is the 5-stage progressively scaled buffer chain. The control stage intentionally slows down the clock edges to adjust the duty cycle. If these slow edges were fed directly into the high-speed multiplexer, it would cause severe deterministic jitter. The 5-stage buffer chain restores the edge rates, providing massive current multiplication to drive the $\approx 200\text{ fF}$ input capacitance of the 4:1 MUX while precisely preserving the newly corrected 25\% pulse width.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{dcc1.png}
+    \caption{The forward clock path, showing the current starved control stage cascading into the 5-stage FO4 buffer chain, terminating at the equivalent 4:1 MUX load.}
+    \label{fig:dcc_buffer_chain}
+\end{figure}
+
+\subsubsection{Duty Cycle Comparison and Error Amplification}
+
+The sensory mechanism of the DCC relies on converting the high-speed duty cycle into proportional DC voltages using identical charge pump circuits. The comparison stage utilizes two distinct paths:
+\begin{itemize}
+    \item \textbf{Reference Generation:} The top charge pump is driven by the pristine 50\% duty cycle clock (\texttt{CLK\_REF}) generated directly from the master I/Q divider. This pump injects charge into a $5\text{ pF}$ capacitor to establish a highly stable DC reference voltage (\texttt{VREF}). 
+    \item \textbf{Feedback Integration:} The bottom charge pump is driven by the final output clock (\texttt{clk\_out}) at the end of the buffer chain. It integrates this fed-back duty cycle onto an identical $5\text{ pF}$ capacitor to generate the sensed voltage (\texttt{VC}).
+\end{itemize}
+
+A \textbf{5-transistor Operational Transconductance Amplifier (5t-OTA)} is employed as the active error amplifier. It continuously compares the sensed voltage (\texttt{VCC}) against the ideal reference (\texttt{VREFFF}), driving the loop to achieve a minimized error voltage:
+$$V_{err} = V_c - V_{ref} \approx 0$$
+
+Any deviation in the output duty cycle creates a voltage mismatch at the 5t-OTA inputs, prompting it to adjust \texttt{Vctrl}. The architectural sizing of this 5t-OTA dictates the fundamental dynamics of the feedback loop, requiring a strict design tradeoff between system stability, open-loop gain, settling time, buffer chain delay, and the residual static error.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{dcc comparison.png}
+    \caption{The comparison stage schematic. Two charge pumps convert the 50\% reference clock and the output clock into DC voltages, which are compared by a 5t-OTA to generate the continuous-time feedback signal (\texttt{Vctrl}).}
+    \label{fig:dcc_comparison}
+\end{figure}
+
+\subsubsection{Charge Pump Biasing and 25\% Ratio Scaling}
+
+A critical non-ideality in precision charge pump design is the mismatch of charging ($I_p$) and discharging ($I_n$) currents due to channel-length modulation. To guarantee a highly accurate current mirroring ratio, a dedicated biasing circuit was implemented using a replica of the charge pump's internal inverter. By replicating the exact node states, the drain-to-source voltages ($v_{ds}$) of the current mirrors are forced to match perfectly, mitigating asymmetric current leakage and ensuring the integrity of the reference sources.
+
+With the mirroring accuracy secured by the $v_{ds}$ matched biasing, the currents can be reliably scaled to target the 25\% duty cycle. The feedback loop reaches a steady-state balance when the average injected charge is zero. The balance condition is governed by the ratio of the active HIGH duration ($w_1$) to the active LOW duration ($w_0$):
+$$w_{1}(h)I_{n} = w_{0}(h)I_{p}$$
+
+To achieve this target, the feedback charge pump (connected to \texttt{clk\_out}) was structurally modified. The NMOS discharging branch was sized to be exactly three times stronger than the PMOS charging branch. Conversely, the reference charge pump maintains a 1:1 transistor strength ratio ($I_n = I_p$), generating an ideal VDD/2 reference voltage from the 50\% input. By comparing these two distinctly scaled integration paths, the system successfully locks the highly asymmetric 25\% clock.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{dc biasing of the charge pump.png}
+    \caption{Charge pump schematic detailing the replica biasing network utilized to match $v_{ds}$ across the mirroring inverters, securing the 3:1 current ratio required for 25\% phase locking.}
+    \label{fig:dcc_charge_pump_bias}
+\end{figure}
+
+\subsubsection{Transient Response and Loop Stability}
+
+To validate the second-order dynamics of the system, transient simulations were executed across the full spectrum of anticipated input errors. As shown in the simulation results, the core loop filter voltages (\texttt{VREF} and \texttt{VC}) smoothly converge near the $VDD/2$ target without instability. 
+
+The 5t-OTA successfully generates distinct, stable DC control voltages (\texttt{Vctrl}) to compensate for the varying input errors. Crucially, the \texttt{Vctrl} transient response exhibits a controlled, underdamped second-order settling characteristic. This confirms the absence of oscillatory behavior and demonstrates a fast, reliable lock time across all corners.
+
+For input duty cycles distorted ranging from 22\% to 28\%, the continuous-time feedback loop successfully locks the output clock to a pristine 25\% duty cycle with a minimal static error margin of $\pm 0.9\%$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{vref and vc which are alongside eachother.png}
+    \caption{Transient convergence of the loop filter voltages (\texttt{VREF} and \texttt{VC}) settling smoothly near $VDD/2$.}
+    \label{fig:dcc_vref_vcc_converge}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{vctrl at many duty cycles inputs.png}
+    \caption{Transient response of the control voltage (\texttt{Vctrl}) under various input distortions, demonstrating stable, underdamped second-order settling.}
+    \label{fig:dcc_vctrl_settling}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{duty cycle output for inputs from 22 to 28.png}
+    \caption{Final output duty cycle percentages settling to $25\% \pm 0.9\%$ despite input variations from 22\% to 28\%.}
+    \label{fig:dcc_final_duty_cycle}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{input and output pulses.png}
+    \caption{Time-domain waveforms illustrating the phase alignment and pulse-width correction between the distorted input clocks and the locked 25\% output clocks.}
+    \label{fig:dcc_pulses}
+\end{figure}
+
+\section{System Integration and Clock Distribution Network}
+
+Following the design and verification of the individual sub-blocks, the complete quarter-rate clock distribution network is integrated. This system cascades the master I/Q Divider, the Symmetric AND2 pulse generators, and the Duty Cycle Correction (DCC) loops to synthesize, shape, and condition the four 8~GHz quadrature phases ($0^\circ, 90^\circ, 180^\circ, 270^\circ$) required by the final 4:1 multiplexer.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{whole system.png}
+    \caption{Top-level schematic of the integrated clock distribution network, showing the I/Q divider, quadrature AND2 gates, and the quad-channel DCC terminating at the multiplexer load.}
+    \label{fig:whole_system}
+\end{figure}
+
+\subsection{Phase Generation and Systematic Load Balancing}
+
+The clock path originates at the master I/Q divider, which translates the 16~GHz PLL clock into four 8~GHz phases with a 50\% duty cycle. These four phases are immediately fed into the symmetric AND2 gates to synthesize the 25\% duty cycle pulses. 
+
+Simultaneously, the DCC system requires a pristine 50\% duty cycle reference clock to establish the \texttt{VREF} target voltage. To achieve this without requiring a separate clock synthesizer, the $0^\circ$ phase (\texttt{C4\_0}) output from the I/Q divider is tapped and routed to the reference charge pump. 
+
+However, tapping only one of the four phases introduces a critical analog design challenge: \textbf{Systematic Phase Skew}. The input capacitance of the reference charge pump adds an asymmetric load to the \texttt{C4\_0} net. At 8~GHz, this extra capacitance would slow down the $0^\circ$ phase relative to the $90^\circ, 180^\circ,$ and $270^\circ$ phases, destroying the perfect $T/4$ quadrature spacing. 
+
+To mitigate this and guarantee perfect phase alignment, \textbf{Load Balancing} was implemented at the divider outputs. Dummy capacitive loads, strictly matched to the input gate capacitance of the reference charge pump, were attached to the \texttt{C4\_90}, \texttt{C4\_180}, and \texttt{C4\_270} nodes. This ensures all four divider outputs see the exact same parasitic environment, maintaining equivalent propagation delays across the entire quadrature bus.
+
+\subsection{Four Phases Duty Cycle Correction Architecture}
+
+While the earlier DCC analysis focused on a single phase, the quarter-rate transmitter requires four independent correction loops to manage the four multiplexer clocks. To optimize power consumption and silicon area, a \textbf{Quad-Channel DCC Architecture} with a shared reference generator was implemented.
+
+As illustrated in the system block diagram, the architecture consists of:
+\begin{itemize}
+    \item \textbf{Four Independent Forward Paths:} Each of the four 25\% clock phases generated by the AND2 gates is routed through its own dedicated Current Starved Inverter and 5-stage FO4 buffer chain.
+    \item \textbf{Four Sensing Charge Pumps:} At the output of each buffer chain, an asymmetrically scaled (3:1) charge pump continuously senses the specific phase's duty cycle, integrating it into four distinct DC voltages ($V_{c,0}, V_{c,90}, V_{c,180}, V_{c,270}$).
+    \item \textbf{One Shared Reference Generator:} Rather than duplicating the reference generation circuitry four times, a single, symmetrically scaled (1:1) charge pump is driven by the 50\% \texttt{C4\_0} clock. This efficiently generates a single, highly stable, global $VDD/2$ reference voltage (\texttt{VREF}) that is distributed across the system.
+    \item \textbf{Four Error Amplifiers (OTAs):} Four individual 5-transistor OTAs compare their respective phase's sensed voltage ($V_{c,i}$) against the shared global reference (\texttt{VREF}). 
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{dcc system block.png}
+    \caption{Schematic of the Quad-Channel DCC. The system utilizes four independent forward paths and sensing loops, but shares a single 50\% reference generator to minimize area and power consumption while ensuring uniform 25\% duty cycle targets.}
+    \label{fig:dcc_quad_channel}
+\end{figure}
+
+This shared-reference architecture ensures that all four phases are forced to converge to the exact same 25\% duty cycle target, while allowing each of the four OTAs to output an independent control voltage ($V_{ctrl,0}$ to $V_{ctrl,270}$). This allows the system to autonomously compensate for localized routing mismatches or isolated layout-dependent variations occurring on any single clock lane before reaching the 4:1 multiplexer.
+
+
+\section{System-Level Simulation and Performance Verification}
+
+Following the architectural integration of the quarter-rate clock distribution network, the complete system was subjected to rigorous Process, Voltage, and Temperature (PVT) corner simulations. While the system achieves pristine 25\% duty cycle locking and minimal jitter under nominal conditions, analyzing the circuit at the extreme boundaries of the technology node reveals the fundamental physical limits of the architecture.
+
+
+\subsection{Nominal System Simulation Results}
+
+To evaluate the robustness of the integrated clock distribution network, the closed-loop system was simulated under typical nominal conditions. The primary objective is to verify that the quad-channel Duty Cycle Correction (DCC) autonomously locks to the target pulse width, generates the correct quadrature spacing, and adheres to the strict power and jitter budgets required for the 32 Gbps SerDes transmitter.
+
+\subsubsection{Adaptive Duty Cycle Locking}
+
+To test the dynamic tracking of the feedback loops, three distinct, uncorrected duty cycles were injected into the system. As shown in the transient analysis, regardless of the initial input distortion, the DCC's control stages and error amplifiers successfully adapt. Over the integration period, all phases converge precisely to the target 25\% duty cycle required by the subsequent multiplexing stage.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{three different duty cycle input.png}
+    \caption{Transient simulation displaying three different uncorrected input duty cycles fed into the clock distribution network.}
+    \label{fig:three_inputs}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{adaptive duty cycle output.png}
+    \caption{Adaptive duty cycle output. The closed-loop DCC smoothly forces all varying input distortions to converge strictly at the 25\% target.}
+    \label{fig:adaptive_output}
+\end{figure}
+
+\subsubsection{Quadrature Output Generation}
+
+With the feedback loop locked, the integrated system successfully outputs the four required clock phases ($0^\circ, 90^\circ, 180^\circ, 270^\circ$). The transient waveforms confirm that the 8 GHz signals maintain sharp transition edges, non-overlapping 25\% pulse widths, and exact quarter-period phase spacing while driving the equivalent input capacitance of the 4:1 MUX.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{4 phases clk output.png}
+    \caption{Transient response of the final integrated network, outputting four cleanly spaced, non-overlapping 25\% duty cycle phases at 8 GHz.}
+    \label{fig:4_phases_output}
+\end{figure}
+
+\subsubsection{Power Consumption}
+
+In high-speed wireline transmitters, the clock distribution network is traditionally one of the most power-hungry blocks. Evaluating the entire closed-loop system—including the master I/Q divider, pulse shapers, quad-channel DCC, and buffer chains—the average typical power consumption was measured at approximately 17 mW. This validates the efficiency of the shared-reference architecture and the optimal sizing of the fanout buffer chains.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{avg power.png}
+    \caption{Average power consumption evaluation of the integrated clock distribution network.}
+    \label{fig:avg_power}
+\end{figure}
+
+\subsubsection{Clock Jitter Performance}
+
+Because the clocking network directly triggers the final serialization of the data stream, jitter is the most critical performance specification. The integrated system was rigorously evaluated across Deterministic Jitter (DJ), Random Jitter (RJ), and Power Supply Induced Jitter (PSIJ) to ensure compliance with the target protocol.
+
+\begin{itemize}
+    \item \textbf{Deterministic Jitter (DJ):} The system exhibits exceptionally low deterministic jitter. As measured in the output eye diagram, the intrinsic DJ of the clock path is approximately 400 as (attoseconds). This near-zero value leaves nearly the entire deterministic jitter budget available for the physical channel and receiver equalization.
+    
+    \item \textbf{Random Jitter (RJ):} For a 32 Gbps link, the transmitter random jitter specification ($T_{TX-RJ}$) is strictly budgeted between 0.26 ps and 0.42 ps RMS. The closed-loop Pnoise integration demonstrates that the intrinsic device noise of the complete clock path comfortably meets this stringent specification window.
+    
+    \item \textbf{Power Supply Induced Jitter (PSIJ):} To quantify the system's susceptibility to supply rail noise, Power Supply Induced Jitter (PSIJ) was evaluated. While the isolated clock distribution network exhibits a relatively high sensitivity of approximately $92\text{ fs/mV}$, the subsequent 4:1 multiplexer possesses a relatively low intrinsic PSIJ profile. Consequently, when the clocking network is integrated with the multiplexer to form the complete data path, the overall system-level PSIJ is heavily mitigated. This ensures that the final integrated transmitter remains well within the tolerable jitter specifications, guaranteeing robust operation even in the presence of on-chip supply switching noise.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{determinstic jitter.png}
+    \caption{Deterministic jitter measurement of the final 25\% clock output, demonstrating an exceptionally low internal DJ of approximately 400 as.}
+    \label{fig:system_dj}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{closed loop random jitter.png}
+    \caption{Extracted Random Jitter (RJ) from the closed-loop system, verifying compliance with the 0.26 to 0.42 ps RMS specification budget.}
+    \label{fig:system_rj}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{psij.png}
+    \caption{Power Supply Induced Jitter (PSIJ) measurement, confirming a noise sensitivity of approximately 92 fs/mV.}
+    \label{fig:system_psij}
+\end{figure}
+
+
+
+\subsection{PVT Corner Analysis and Failure Mechanisms}
+
+Extreme corner simulations are critical for identifying the boundaries of the Duty Cycle Correction (DCC) loop's tracking capabilities. During this analysis, specific failure mechanisms were observed when the high-frequency signal overwhelmed the analog feedback mechanics.
+
+\subsubsection{Case 1: Fast- Fast Corner Failure}
+
+The first critical failure was observed at the \texttt{ff\_2} corner, characterized by Fast-Fast (FF) silicon, a 10\% degraded supply voltage ($V_{DD}$ = 720 mV), and an extreme cold temperature of -40$^\circ$C.
+
+Under these highly scaled conditions, the master I/Q divider remains robust, successfully maintaining the reference clock at a near-ideal 50\% duty cycle. However, the DCC feedback loop fails to lock the output due to a fundamental breakdown in the sensing charge pump's integration mechanics.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{ff2 corner failure.png}
+    \caption{Transient simulation at the \texttt{ff\_2} corner (-40$^\circ$C, 720 mV). The sensed voltage ($V_c$) erroneously rises above the reference voltage ($V_{ref}$) despite an increasing output duty cycle, indicating a polarity inversion in the feedback loop.}
+    \label{fig:ff2_corner_failure}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{The Feedback Anomaly:} In a properly functioning DCC loop, if the output duty cycle expands beyond the 25\% target, the 3:1 asymmetrically scaled NMOS discharging branch remains active longer than the PMOS charging branch. This should naturally force the sensed voltage ($V_c$) to drop below the reference voltage ($V_{ref}$). However, as shown in the transient plot, the exact opposite occurs: as the duty cycle expands, $V_c$ erroneously rises above $V_{ref}$, pushing the loop further out of lock.
+    
+    \item \textbf{Root Cause (Transient Spike Domination):} This anomaly is a direct consequence of the 8 GHz operating frequency. At this speed, the clock period is 125 ps, meaning the target 25\% active-HIGH pulse is exceptionally narrow (only 31.25 ps). At the FF/cold corner, transistor switching speeds are drastically accelerated. This rapid switching generates massive, sharp transient current spikes during the clock edge transitions due to charge injection and parasitic clock feedthrough.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{ff2 current .png}
+    \caption{Current flowing into the loop filter capacitor at the \texttt{ff\_2} corner. The waveform lacks a steady-state DC plateau; the charge transfer is entirely dominated by high-frequency switching spikes.}
+    \label{fig:ff2_transient_current}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Integration Failure:} The classical continuous-time charge pump model assumes that the operating frequency is low enough that the average current is dominated by the steady-state mean value (the flat plateau of the pulse). However, because the 31.25 ps window is so narrow, this assumption collapses. The current flowing into the loop filter capacitor becomes heavily dominated by the high-frequency switching spikes rather than the intended DC charging/discharging currents. This effectively blinds the charge pump, causing it to integrate switching noise rather than the actual phase duration, leading to the inversion of the $V_c$ and $V_{ref}$ relationship and the ultimate failure of the correction loop.
+\end{itemize}
+
+\subsubsection{Case 2: Slow- Slow Corner Failure}
+
+A mirroring failure mechanism was observed at the opposite extreme: the \texttt{ss\_1} corner, characterized by Slow-Slow (SS) silicon, an elevated supply voltage ($V_{DD}$ = 880 mV), and extreme heat at 125$^\circ$C.
+
+Under these sluggish conditions, the uncorrected clock suffers from severe pulse-width degradation, with the duty cycle shrinking well below the 25\% target. However, the feedback loop once again fails to apply the correct compensation, driving the system out of lock.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{corner failure.png}
+    \caption{Transient simulation at the \texttt{ss\_1} corner (125$^\circ$C, 880 mV). The output duty cycle shrinks below 20\%, but the sensed voltage ($V_c$) erroneously drops below the reference ($V_{ref}$), pushing the loop further out of lock.}
+    \label{fig:ss1_corner_failure}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{The Feedback Anomaly:} If the duty cycle shrinks below 25\%, the 3:1 NMOS discharging branch in the charge pump is active for less time. Consequently, the net charge should be positive, forcing $V_c$ to rise above $V_{ref}$ to speed up the falling edge. Instead, the simulation reveals the opposite: $V_c$ plummets below $V_{ref}$, compounding the duty cycle error.
+    
+    \item \textbf{Root Cause (Spike Domination):} Similar to the FF corner, the root cause lies in the transient current profile. In the slow corner, the rise and fall times of the clock edges consume a massive percentage of the already narrow $T/4$ pulse window. There is virtually no "flat" mean DC plateau left for the charge pump to integrate. 
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{current worst corner.png}
+    \caption{Current flowing into the loop filter capacitor at the \texttt{ss\_1} corner. The charging profile is entirely consumed by massive switching transients, completely masking the intended DC current mirroring ratio.}
+    \label{fig:ss1_transient_current}
+\end{figure}
+
+Because the integration is overwhelmingly dominated by the negative capacitive feedthrough spikes rather than the steady-state transistor currents, the charge pump outputs a net negative charge, driving $V_c$ down erroneously.
+
+\subsubsection{Nominal Operation: The Tuned Balance Point}
+
+Given that the 8~GHz operating frequency forces the charge pump to integrate transient spikes rather than ideal DC currents, it is critical to understand why the DCC loop successfully locks under nominal PVT conditions (Typical-Typical, 800 mV, 27$^\circ$C).
+
+In the nominal case, the feedback loop operates successfully because the entire system has been meticulously tuned to a specific, singular operating point. The classical charge balance equation ($\int I dt = 0$) is satisfied not purely by the continuous-time DC currents ($I_n$ and $I_p$), but by the integral of the \textit{entire} complex waveform over one clock period.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{current nominal.png}
+    \caption{Current profile under nominal PVT conditions. The loop is tuned such that the integral of the positive spikes and mean charging current perfectly cancels the integral of the negative spikes and mean discharging current.}
+    \label{fig:nominal_transient_current}
+\end{figure}
+
+At the nominal corner, the 3:1 transistor sizing successfully compensates for the transient switching noise. The loop achieves equilibrium because the aggregate area under the positive curve (the upward capacitive spikes plus the brief PMOS charging plateau) is exactly equal to the aggregate area under the negative curve (the downward capacitive spikes plus the NMOS discharging plateau) exclusively when the pulse width is precisely 25\%. 
+
+This highlights the fundamental limitation of applying standard continuous-time DCC topologies to millimeter-wave frequencies: the loop relies on a delicate balance of parasitics and deterministic currents that holds true at nominal conditions, but inevitably breaks down when severe PVT variations drastically alter the transient switching profile.
+
+
+\section{5-Transistor OTA Layout and Post-Layout Verification}
+
+In the Duty Cycle Correction (DCC) loop, the Operational Transconductance Amplifier (5t-OTA) serves as the critical error amplifier comparing the sensed duty cycle voltage ($V_c$) against the ideal reference ($V_{ref}$). Any systematic mismatch or input offset voltage within this OTA directly translates to a static duty cycle error at the final output. Therefore, meticulous analog layout techniques were employed to guarantee highly symmetrical electrical characteristics.
+
+\subsection{Layout Matching Techniques}
+
+To mitigate the effects of process variations, thermal gradients, and shallow trench isolation (STI) stress across the silicon, robust interdigitation and common-centroid matching topologies were applied to the critical transistor pairs.
+
+\subsubsection{Input Differential Pair and PMOS Active Load}
+
+The input differential pair and the PMOS current mirror load are highly sensitive to threshold voltage ($V_{th}$) mismatch. To ensure identical electrical environments for both branches, these transistors were laid out using a 1-dimensional \textbf{ABBA} interdigitation pattern. 
+
+By splitting the transistors into parallel unit fingers and interleaving them (e.g., placing the left branch fingers on the outside and the right branch fingers on the inside), linear process gradients across the X-axis of the die are effectively averaged out. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{input pair and pmos load.png}
+    \caption{Layout of the OTA input differential pair and PMOS active load utilizing an ABBA interdigitation pattern to minimize threshold voltage mismatch.}
+    \label{fig:ota_input_load_layout}
+\end{figure}
+
+\subsubsection{Tail Current Source}
+
+The tail current source dictates the total biasing current and affects the common-mode rejection of the OTA. Because this device is significantly larger to provide high output impedance, it is susceptible to 2-dimensional process and thermal gradients.
+
+To combat this, the tail current transistors were fractured into a large matrix of unit cells and arranged in a 2-dimensional checkerboard pattern, specifically:
+\begin{center}
+    \texttt{A B A B A B} \\
+    \texttt{B A B A B A} \\
+    \texttt{A B A B A B} \\
+    \texttt{B A B A B A}
+\end{center}
+
+This extensive cross-coupling ensures deep common-centroid matching, virtually eliminating the impact of radial or diagonal parameter variations across the large active area.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{tail current source.png}
+    \caption{Layout of the tail current source employing a dense 2D checkerboard (ABABAB/BABABA) common-centroid pattern to cancel multi-directional process gradients.}
+    \label{fig:ota_tail_layout}
+\end{figure}
+
+\subsubsection{Complete 5t-OTA Layout}
+
+The fully assembled 5t-OTA integrates these matched blocks alongside heavily gridded VDD and GND routing to minimize parasitic resistance and electromigration risks.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{5t ota layout.png}
+    \caption{Complete layout of the 5-transistor Operational Transconductance Amplifier (5t-OTA), combining the highly matched sub-blocks into a compact, robust footprint.}
+    \label{fig:complete_ota_layout}
+\end{figure}
+
+\subsubsection{Post-Layout Duty Cycle Locking}
+
+The fundamental test of the physical layout is whether the analog feedback loop retains enough gain and phase margin to lock the duty cycle despite the added parasitic load. As demonstrated in the post-layout transient response, the continuous-time feedback loop successfully converges. 
+
+The output duty cycle settles at approximately 25.28\%. This minor static offset of 0.28\% from the ideal 25\% target is an expected consequence of extracted parasitic mismatch and asymmetric routing capacitance. However, this negligible deviation remains well within the tolerance threshold of the subsequent 4:1 multiplexer and does not induce bit errors.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{post layout output duty cycle.png}
+    \caption{Post-layout transient simulation of the output duty cycle, demonstrating stable feedback convergence to roughly 25.28\% despite the inclusion of full RC extraction parasitics.}
+    \label{fig:postlayout_dutycycle}
+\end{figure}
+
+\subsubsection{Post-Layout Deterministic Jitter (DJ)}
+
+Physical routing inherently introduces minor path-length differences and mismatched RC time constants, which directly manifest as Deterministic Jitter (DJ). Measuring the edge-crossing variance in the post-layout eye diagram yields a deterministic jitter of roughly 592 as (attoseconds). 
+
+Compared to the pre-layout schematic simulation (which exhibited roughly 400 as of DJ), this represents an incredibly minor degradation. This confirms that the rigorous ABBA and ABABAB interdigitation and common-centroid matching techniques applied to the 5t-OTA and symmetric AND2 gates successfully suppressed systematic skew and localized process gradients across the layout.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{post layout dj.png}
+    \caption{Post-layout deterministic jitter measurement. The extracted clock path introduces a negligible 592 as of DJ, proving the high symmetry of the physical implementation.}
+    \label{fig:postlayout_dj}
+\end{figure}
+
+\subsubsection{Post-Layout Random Jitter (RJ)}
+
+Finally, the Random Jitter (RJ) profile of the extracted layout was evaluated using Pnoise integration to ensure the added parasitic resistances did not introduce excessive thermal noise. 
+
+The post-layout results indicate an RMS random jitter ranging from approximately 124 fs to 255 fs across the measured nodes. This exceptional post-layout noise performance remains safely below the strict 0.26 ps to 0.42 ps RMS jitter budget assigned to the transmitter clock path, fully clearing the integrated network for high-speed 32 Gbps serialization.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{post layout rj.png}
+    \caption{Post-layout random jitter extraction derived from Pnoise analysis, confirming RMS jitter values well within the stringent high-speed transmitter budget.}
+    \label{fig:postlayout_rj}
+\end{figure}
