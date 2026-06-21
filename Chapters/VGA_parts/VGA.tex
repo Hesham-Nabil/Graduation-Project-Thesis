@@ -1,5 +1,5 @@
 \subsection{Proposed Topology}
-Following the receiver input network, a Variable Gain Amplifier (VGA) is required to equalize the signal amplitude before it is sampled by the Decision Feedback Equalizer (DFE). The primary design objective for this block is to provide a moderate, digitally controlled gain range while consuming minimal power. Furthermore, the VGA must drive the massive parasitic input capacitance of the subsequent DFE stage without severely degrading the 16 GHz Nyquist bandwidth necessary for 64 GT/s PAM4 operation.
+Following the receiver input network and CTLE, a Variable Gain Amplifier (VGA) is required to optimize the signal amplitude before it is sampled by the Decision Feedback Equalizer (DFE). The primary design objective for this block is to provide a moderate, digitally controlled gain range while consuming minimal power. Furthermore, the VGA must drive the massive parasitic input capacitance of the subsequent DFE stage without severely degrading the 16 GHz Nyquist bandwidth necessary for 64 GT/s PAM4 operation.
 
 To achieve this, a single-stage differential common-source amplifier with digitally controlled source degeneration was selected as the base architecture. As shown in Figure \ref{fig:vga_schematic}, the proposed topology introduces three critical architectural enhancements over standard source-degenerated amplifiers: inductive shunt peaking, a 1-bit load calibration branch, and a 3-bit binary-weighted current DAC for robust PVT compensation.
 
@@ -26,7 +26,7 @@ Driving the large input capacitance ($C_L$) of the DFE introduces a dominant low
 
 The inductor introduces a high-frequency zero into the transfer function ($\omega_z = R_D / L_D$) that delays the capacitive roll-off. The network was designed with an inductive ratio of $m = R_D^2 C_L / L_D = 3.1$ to provide a bandwidth extension ratio (BWER) of $1.57\times$, hence extending the operating frequency range without requiring additional power dissipation.
 
-\subsubsection*{PVT Calibration Framework}
+\subsubsection*{PVT Calibration}
 In the Slow-Slow (SS) corner, passive resistance values increases by nearly 20\%. This deviation not only shifts the dominant pole to a lower frequency (degrading operating bandwidth) but also causes an excessive voltage drop across $R_D$. This shifts the output common-mode voltage ($V_{CM}$) downward and compromises the circuit's voltage headroom. 
 
 To mitigate these corner deviations, three distinct calibration networks are implemented to stabilize performance metrics:
@@ -156,7 +156,7 @@ Table~\ref{tab:gain_codes} maps the control states to their corresponding mid-ba
     \label{tab:gain_codes}
     \begin{tabular}{@{}cc@{}}
         \toprule
-        \textbf{Degeneration Control Code ($b_3 \dots b_0$)} & \textbf{Simulated Gain (dB)} \\ 
+        \textbf{Control Code ($b_3 \dots b_0$)} & \textbf{Gain (dB)} \\ 
         \midrule
         0000 & 1.05 \\ 
         0001 & 2.54 \\ 
@@ -167,8 +167,27 @@ Table~\ref{tab:gain_codes} maps the control states to their corresponding mid-ba
     \end{tabular}
 \end{table}
 
-\subsubsection*{VGA Linearity}
-To ensure the PAM4 signal integrity is not compromised by amplifier compression, the large-signal linearity of the VGA was evaluated at both the minimum (1~dB) and maximum (7~dB) gain steps. Figure~\ref{fig:vga_linearity} presents the voltage transfer characteristics (S-curves) and the corresponding Total Harmonic Distortion (THD) profiles, verifying adequate voltage headroom across both extreme operating configurations.
+\begin{table}[H]
+\centering
+\caption{VGA Nominal Performance Parameters}
+\label{tab:vga_key_params}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Nominal Value} \\
+\midrule
+3-dB Bandwidth ($BW$) & $> 16\,\text{GHz}$ \\
+Output Common-Mode Voltage ($V_{CM}$) & $540\,\text{mV}$ \\
+Total Current Consumption ($I_{DD}$) & $4.8\,\text{mA}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Linearity Analysis}
+To ensure the PAM4 signal integrity is not compromised by amplifier compression, the large-signal linearity of the VGA was evaluated at both the minimum (1~dB) and maximum (7~dB) gain steps. As illustrated in Figure~\ref{fig:vga_linearity}, the linearity profile is heavily dependent on the programmed gain state due to the variable source degeneration architecture.
+
+At the minimum gain setting (1~dB), the maximum source degeneration resistance is applied. This linearizes the effective transconductance of the differential pair, yielding a highly linear transfer characteristic across a broad differential input range ($V_{id} \approx \pm 0.4\,\text{V}$). Consequently, the distortion remains negligible, with the THD staying well below 1\% for typical input amplitudes.
+
+Conversely, at the maximum gain setting (7~dB), the coarse degeneration branches are activated, minimizing the effective source resistance to maximize voltage gain. While this fulfills the dynamic range requirements, the amplifier's response becomes increasingly dominated by the intrinsic nonlinearities of the input transistors. The onset of soft saturation (headroom compression) becomes visible in the voltage transfer curve beyond an input swing of $\pm 0.2\,\text{V}$.
 
 \begin{figure}[H]
     \centering
@@ -176,14 +195,14 @@ To ensure the PAM4 signal integrity is not compromised by amplifier compression,
     % --- Top Row: 7 dB Gain Step Configuration ---
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/7db_scurve.pdf} % Replace with 7db_scurve.pdf
+        \includegraphics[width=\textwidth]{vga_assets/7db_scurve.pdf} 
         \caption{Voltage Transfer Curve at 7 dB Gain}
         \label{fig:vga_scurve_7db}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/THD_7db.pdf} % Replace with 7db_thd.pdf
+        \includegraphics[width=\textwidth]{vga_assets/THD_7db.pdf} 
         \caption{THD Profile at 7 dB Gain}
         \label{fig:vga_thd_7db}
     \end{subfigure}
@@ -193,14 +212,14 @@ To ensure the PAM4 signal integrity is not compromised by amplifier compression,
     % --- Bottom Row: 1 dB Gain Step Configuration ---
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/1db_scurve.pdf} % Replace with 1db_scurve.pdf
+        \includegraphics[width=\textwidth]{vga_assets/1db_scurve.pdf} 
         \caption{Voltage Transfer Curve at 1 dB Gain}
         \label{fig:vga_scurve_1db}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/THD_1db.pdf} % Replace with 1db_thd.pdf
+        \includegraphics[width=\textwidth]{vga_assets/THD_1db.pdf} 
         \caption{THD Profile at 1 dB Gain}
         \label{fig:vga_thd_1db}
     \end{subfigure}
@@ -209,10 +228,26 @@ To ensure the PAM4 signal integrity is not compromised by amplifier compression,
     \label{fig:vga_linearity}
 \end{figure}
 
-\subsubsection*{PVT Corner Analysis}
-A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of the calibration networks. A total of 16 extreme scenarios were simulated for each state, encompassing extreme process variations (Slow-Slow and Fast-Fast), supply voltage fluctuations ($\pm 5\%$ VDD), and extreme industrial temperature ranges ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
+This compression behavior directly correlates with the Total Harmonic Distortion (THD) profiles. As summarized in Table~\ref{tab:thd_summary}, driving the VGA with a $200\,\text{mV}_{peak}$ signal yields a highly linear response (0.8\% THD) at minimum gain, whereas the same input amplitude at maximum gain pushes the THD to approximately 4.8\% due to the amplification of third-order intermodulation products. This verifies that the VGA provides adequate voltage headroom and maintains acceptable PAM4 signal integrity within the nominal operating window.
 
-By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the tail current via the 3-bit $I_{DAC}$, the VGA successfully maintained its target gain profile, bandwidth, and common-mode voltage across all severe PVT shifts without early capacitive roll-off or excessive peaking.
+\begin{table}[H]
+    \centering
+    \caption{Total Harmonic Distortion (THD) vs. Input Amplitude}
+    \label{tab:thd_summary}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Gain State} & \textbf{THD @ $100\text{ mV}_{peak}$} & \textbf{THD @ $200\text{ mV}_{peak}$} & \textbf{THD @ $300\text{ mV}_{peak}$} \\ 
+        \midrule
+        Minimum Gain (1~dB) & $\approx 0.15\%$ & $\approx 0.8\%$ & $\approx 2.7\%$ \\ 
+        Maximum Gain (7~dB) & $\approx 1.0\%$ & $\approx 4.8\%$ & $\approx 10.0\%$ \\ 
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{PVT Corner Analysis}
+A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of the calibration networks. A total of 12 corners were simulated for each state, encompassing process variations (Slow-Slow and Fast-Fast), supply voltage fluctuations ($\pm 5\%$ VDD), and extreme temperature variations ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
+
+By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the tail current via the 3-bit $I_{DAC}$, the VGA was able to maintain its target gain profile, bandwidth, and common-mode voltage across all severe PVT shifts with minimum variations.
 
 \begin{figure}[H]
     \centering
@@ -269,11 +304,12 @@ By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the 
     \label{tab:vga_corner_summary}
     \begin{tabular}{@{}ll@{}}
         \toprule
-        \textbf{Performance Metric} & \textbf{Observed Variation} \\
+        \textbf{Performance Metric} & \textbf{Variation} \\
         \midrule
         Common-Mode Voltage ($V_{CM}$) & $\sim \pm 20\,\text{mV}$ \\
-        DC Gain Delta & $< \pm 0.6\,\text{dB}$ \\
+        DC Gain  & $< \pm 0.6\,\text{dB}$ \\
         3-dB Bandwidth ($BW$) & $> 16\,\text{GHz}$ \\
+        Current Consumption  & $< 5.5\,\text{mA}$ \\
         Device Operating Region & All  transistors remain in saturation \\
         \bottomrule
     \end{tabular}
@@ -319,7 +355,7 @@ To validate the robustness of the physical design, Post-Layout Extraction (PEX) 
 To capture the true analog front-end characteristics, the entire chain—from the input network to the VGA output—was simulated as a unified block.
 
 \subsubsection*{Chain Noise}
-The input-referred and output noise profiles were evaluated at the maximum VGA and CTLE configuration (7 dB, -15dB respectively). This represents the worst-case noise scenario, as all degeneration branches are open, maximizing the thermal noise contribution of the source resistors. The integrated noise up to the 16 GHz operating bandwidth is documented in Table \ref{tab:chain_noise}.
+The noise profile was evaluated at the maximum VGA and CTLE configuration (7 dB, and -15 dB respectively). This represents the worst-case noise scenario, as all degeneration branches are open, maximizing the thermal noise contribution of the source resistors. The integrated noise up to the 16 GHz operating bandwidth is documented in Table \ref{tab:chain_noise}.
 
 \begin{figure}[H]
     \centering
@@ -338,6 +374,7 @@ The input-referred and output noise profiles were evaluated at the maximum VGA a
         \midrule
         Integration Bandwidth & 1 Hz to 16.0 GHz \\ 
         Total Integrated Noise (RMS) & 1.514 mVrms \\ 
+        Total Integrated VGA Noise (RMS) & 0.542 mVrms \\
         \bottomrule
     \end{tabular}
 \end{table}
