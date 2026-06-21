@@ -182,8 +182,12 @@ Total Current Consumption ($I_{DD}$) & $4.8\,\text{mA}$ \\
 \end{tabular}
 \end{table}
 
-\subsubsection*{VGA Linearity Analysis}
-To ensure the PAM4 signal integrity is not compromised by amplifier compression, the large-signal linearity of the VGA was evaluated at both the minimum (1~dB) and maximum (7~dB) gain steps. Figure~\ref{fig:vga_linearity} presents the voltage transfer characteristics (S-curves) and the corresponding Total Harmonic Distortion (THD) profiles, verifying adequate voltage headroom across both extreme operating configurations.
+\subsubsection*{Linearity Analysis}
+To ensure the PAM4 signal integrity is not compromised by amplifier compression, the large-signal linearity of the VGA was evaluated at both the minimum (1~dB) and maximum (7~dB) gain steps. As illustrated in Figure~\ref{fig:vga_linearity}, the linearity profile is heavily dependent on the programmed gain state due to the variable source degeneration architecture.
+
+At the minimum gain setting (1~dB), the maximum source degeneration resistance is applied. This linearizes the effective transconductance of the differential pair, yielding a highly linear transfer characteristic across a broad differential input range ($V_{id} \approx \pm 0.4\,\text{V}$). Consequently, the distortion remains negligible, with the THD staying well below 1\% for typical input amplitudes.
+
+Conversely, at the maximum gain setting (7~dB), the coarse degeneration branches are activated, minimizing the effective source resistance to maximize voltage gain. While this fulfills the dynamic range requirements, the amplifier's response becomes increasingly dominated by the intrinsic nonlinearities of the input transistors. The onset of soft saturation (headroom compression) becomes visible in the voltage transfer curve beyond an input swing of $\pm 0.2\,\text{V}$.
 
 \begin{figure}[H]
     \centering
@@ -191,14 +195,14 @@ To ensure the PAM4 signal integrity is not compromised by amplifier compression,
     % --- Top Row: 7 dB Gain Step Configuration ---
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/7db_scurve.pdf} % Replace with 7db_scurve.pdf
+        \includegraphics[width=\textwidth]{vga_assets/7db_scurve.pdf} 
         \caption{Voltage Transfer Curve at 7 dB Gain}
         \label{fig:vga_scurve_7db}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/THD_7db.pdf} % Replace with 7db_thd.pdf
+        \includegraphics[width=\textwidth]{vga_assets/THD_7db.pdf} 
         \caption{THD Profile at 7 dB Gain}
         \label{fig:vga_thd_7db}
     \end{subfigure}
@@ -208,14 +212,14 @@ To ensure the PAM4 signal integrity is not compromised by amplifier compression,
     % --- Bottom Row: 1 dB Gain Step Configuration ---
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/1db_scurve.pdf} % Replace with 1db_scurve.pdf
+        \includegraphics[width=\textwidth]{vga_assets/1db_scurve.pdf} 
         \caption{Voltage Transfer Curve at 1 dB Gain}
         \label{fig:vga_scurve_1db}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{img/Termination_VGA_img/THD_1db.pdf} % Replace with 1db_thd.pdf
+        \includegraphics[width=\textwidth]{vga_assets/THD_1db.pdf} 
         \caption{THD Profile at 1 dB Gain}
         \label{fig:vga_thd_1db}
     \end{subfigure}
@@ -223,6 +227,22 @@ To ensure the PAM4 signal integrity is not compromised by amplifier compression,
     \caption{Linearity analysis of the VGA at minimum and maximum gain configurations.}
     \label{fig:vga_linearity}
 \end{figure}
+
+This compression behavior directly correlates with the Total Harmonic Distortion (THD) profiles. As summarized in Table~\ref{tab:thd_summary}, driving the VGA with a $200\,\text{mV}_{peak}$ signal yields a highly linear response (0.8\% THD) at minimum gain, whereas the same input amplitude at maximum gain pushes the THD to approximately 4.8\% due to the amplification of third-order intermodulation products. This verifies that the VGA provides adequate voltage headroom and maintains acceptable PAM4 signal integrity within the nominal operating window.
+
+\begin{table}[H]
+    \centering
+    \caption{Total Harmonic Distortion (THD) vs. Input Amplitude}
+    \label{tab:thd_summary}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Gain State} & \textbf{THD @ $100\text{ mV}_{peak}$} & \textbf{THD @ $200\text{ mV}_{peak}$} & \textbf{THD @ $300\text{ mV}_{peak}$} \\ 
+        \midrule
+        Minimum Gain (1~dB) & $\approx 0.15\%$ & $\approx 0.8\%$ & $\approx 2.7\%$ \\ 
+        Maximum Gain (7~dB) & $\approx 1.0\%$ & $\approx 4.8\%$ & $\approx 10.0\%$ \\ 
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \subsubsection*{PVT Corner Analysis}
 A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of the calibration networks. A total of 12 corners were simulated for each state, encompassing process variations (Slow-Slow and Fast-Fast), supply voltage fluctuations ($\pm 5\%$ VDD), and extreme temperature variations ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
