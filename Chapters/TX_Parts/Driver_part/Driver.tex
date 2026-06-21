@@ -628,9 +628,9 @@ To quantify the non-linear performance of the transmitter, the Signal-to-Distort
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{SDR_Driver.png}
-    \caption{SDR measurement of the TX driver, comparing Cadence simulation to the linear MATLAB reference.}
-    \label{fig:sdr_driver}
+    \includegraphics[width=0.8\textwidth]{SDR_Nominal.png}
+    \caption{Nominal SDR}
+    \label{fig:sdrn_driver}
 \end{figure}
 
 \begin{figure}[H]
@@ -639,8 +639,13 @@ To quantify the non-linear performance of the transmitter, the Signal-to-Distort
     \caption{Zoomed view of waveform alignment between Cadence transient output and MATLAB linear reference.}
     \label{fig:sdr_zoomed}
 \end{figure}
-
-To further validate this methodology, a simplified RC-equivalent circuit model of the driver was constructed as shown in Figure~\ref{fig:sbr_tb}. By comparing the Single-Bit Response (SBR) of the full transistor-level circuit with this RC-model, we verify the fidelity of the model used to extract the Single Pulse Response (SPR) for the linear reference.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{SDR_SSmax.png}
+    \caption{SSmax SDR}
+    \label{fig:sdrs_driver}
+\end{figure}
+To further validate this methodology, a simplified RC-equivalent circuit model of the driver was constructed as shown in Figure~\ref{fig:sbr_tb}. By comparing the Single-Bit Response (SBR) of the full transistor-level circuit with this RC-model, we verify the fidelity of the model used to extract the Single Bit Response (SBR) for the linear reference.
 
 \begin{figure}[H]
     \centering
@@ -659,12 +664,13 @@ To further validate this methodology, a simplified RC-equivalent circuit model o
 The close match between the transistor-level SBR and the RC-model confirms that the linear reference effectively captures the bandwidth-limiting characteristics of the system, allowing for an accurate isolation of non-linear distortion.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{img/TX_img/SDR_ideal.png}
+    \includegraphics[width=0.8\textwidth]{SDR ideal.png}
     \caption{SDR measurement of the RC-equivalent model for linear reference validation.}
     \label{fig:sdr_ideal}
 \end{figure}
 
-The SDR measurement of the RC-model, presented in Figure~\ref{fig:sdr_ideal}, yields an SDR of $51.96~\text{dB}$, which serves as a baseline for the idealized linear behavior. This confirms that the residual error observed in the full driver-level simulation is indeed representative of the device non-linearities rather than inaccuracies in the behavioral model.
+The SDR measurement of the RC-model, presented in Figure~\ref{fig:sdr_ideal}, yields an SDR of $50~\text{dB}$, which serves as a baseline for the idealized linear behavior. This confirms that the residual error observed in the full driver-level simulation is indeed representative of the device non-linearities rather than inaccuracies in the behavioral model.
+
 
 
 \subsection{AC Common-Mode Peak-to-Peak (AC CM PP) Analysis}
@@ -882,6 +888,260 @@ The final physical integration of the design involves the assembly of the full D
         \caption{DAC with integrated peaking inductors.}
     \end{figure}
   
+\subsection{Parasitic Scaling and Fractional Dummy Insertion}
+To maintain strict binary weighting across the DAC branches, the routing parasitics must scale proportionally with the transistor widths. For the Most Significant Bits (MSBs, e.g., B7 and B6), the full active width (32 units) is utilized for both the Inverter and the Transmission Gate (TG). However, for the lower bits (e.g., B5), the required active width is halved (16 units). 
+
+Simply shrinking the layout footprint would disrupt the pitch and create severe Layout Dependent Effect (LDE) mismatches. Instead, the lower bits maintain the identical physical footprint of the MSBs, but half of the transistor fingers are deactivated to serve as dummy devices. 
+
+The placement of these active fingers is critical to ensure the input ($i/p$) and output ($o/p$) routing parasitics scale linearly. Three primary placement topologies were considered, as illustrated in Figure~\ref{fig:dummy_insertion}:
+
+\begin{enumerate}
+    \item \textbf{Case 1 (Left-Aligned):} The first half of both devices is active. While this minimizes the input routing length, the output signal must traverse the entire dummy section of the TG to reach the common output bus, destroying the parasitic scaling ratio.
+    \item \textbf{Case 2 (Right-Aligned):} The second half is active. This minimizes the output routing, but forces the input signal to route over the dummy inverter fingers, creating an analogous parasitic imbalance at the input node.
+    \item \textbf{Case 3 (Edge-Aligned / Optimal):} The active fingers are pushed to the extreme outer edges—the first half of the Inverter and the second half of the TG are active. This perfectly scales both the input and output routing lengths by a factor of two, perfectly matching the 16-unit electrical width while isolating the active devices from internal cross-coupling.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        thick,
+        activebox/.style={draw=green!70!black, ultra thick, fill=green!10, rounded corners=1pt},
+        dummybox/.style={draw=red, thin},
+        arrow/.style={blue, ->, >=stealth, thick},
+        font=\sffamily
+    ]
+
+    % ==========================================
+    % ROW 1: B7, 6 (MSB - Full Width 32)
+    % ==========================================
+    \begin{scope}[yshift=0cm]
+        \draw[thick, green!50!black] (-0.2, -0.5) rectangle (8.2, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B7, 6};
+        
+        \draw[dummybox] (0,0) rectangle (4,0.5); % Inverter
+        \draw[dummybox] (4,0) rectangle (8,0.5); % TG
+        
+        \draw[arrow] (0,0.25) -- (4,0.25) node[midway, above=-2pt, scale=0.8] {i/p};
+        \draw[arrow] (4,0.25) -- (8,0.25) node[midway, above=-2pt, scale=0.8] {o/p};
+        
+        \node[text=red, font=\bfseries] at (2, -0.25) {Inverter};
+        \node[text=red, font=\bfseries] at (6, -0.25) {TG};
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.7) {32};
+    \end{scope}
+
+    % ==========================================
+    % ROW 2: B5 (Case 1: First is active)
+    % ==========================================
+    \begin{scope}[yshift=-2.8cm]
+        \draw[thick, green!50!black] (-0.2, -0.5) rectangle (8.2, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B5};
+        
+        % Inverter
+        \draw[dummybox] (0,0) rectangle (4,0.5); 
+        \filldraw[activebox] (0,-0.05) rectangle (2,0.55);
+        \draw[arrow] (0,0.25) -- (2,0.25);
+        
+        % TG
+        \draw[dummybox] (4,0) rectangle (8,0.5);
+        \filldraw[activebox] (4,-0.05) rectangle (6,0.55);
+        \draw[arrow] (4,0.25) -- (8,0.25); % Routes through dummy
+        
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.7) {16};
+        \node[text=red, font=\bfseries, align=left, right] at (8.5, 0.5) {First is active\\second is dummy};
+    \end{scope}
+
+    % ==========================================
+    % ROW 3: B5 (Case 2: Second is active)
+    % ==========================================
+    \begin{scope}[yshift=-5.6cm]
+        \draw[thick, green!50!black] (-0.2, -0.5) rectangle (8.2, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B5};
+        
+        % Inverter
+        \draw[dummybox] (0,0) rectangle (4,0.5);
+        \filldraw[activebox] (2,-0.05) rectangle (4,0.55);
+        \draw[arrow] (0,0.25) -- (4,0.25); % Routes through dummy
+        
+        % TG
+        \draw[dummybox] (4,0) rectangle (8,0.5);
+        \filldraw[activebox] (6,-0.05) rectangle (8,0.55);
+        \draw[arrow] (6,0.25) -- (8,0.25);
+        
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.7) {16};
+        \node[text=red, font=\bfseries, align=left, right] at (8.5, 0.5) {First is dummy\\second is active};
+    \end{scope}
+
+    % ==========================================
+    % ROW 4: B5 (Case 3: Edge-Aligned / Best)
+    % ==========================================
+    \begin{scope}[yshift=-8.4cm]
+        \draw[thick, green!50!black] (-0.2, -0.5) rectangle (8.2, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B5};
+        
+        % Inverter
+        \draw[dummybox] (0,0) rectangle (4,0.5);
+        \filldraw[activebox] (0,-0.05) rectangle (2,0.55);
+        \draw[arrow] (0,0.25) -- (2,0.25);
+        
+        % TG
+        \draw[dummybox] (4,0) rectangle (8,0.5);
+        \filldraw[activebox] (6,-0.05) rectangle (8,0.55);
+        \draw[arrow] (6,0.25) -- (8,0.25);
+        
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.7) {16};
+        \node[text=blue!80!black, font=\bfseries, align=left, right] at (8.5, 0) {Best solution\\for i/p , o/p to scale to lower\\for each bit\\but how about intermediate node ?};
+    \end{scope}
+
+    \end{tikzpicture}
+    \caption{Fractional dummy insertion strategies for lower DAC bits to maintain parasitic scaling.}
+    \label{fig:dummy_insertion}
+\end{figure}
+
+While the edge-aligned topology (Case 3) perfectly optimizes the parasitic scaling for the external input and output nodes, it introduces a severe penalty for the internal connection. By pushing the active Inverter fingers to the far left and the active TG fingers to the far right, the physical routing distance \textit{between} the two stages is effectively doubled. 
+
+To minimize the intermediate node capacitance, the active devices must be placed as close together as possible. As shown in Figure~\ref{fig:intermediate_node}, the optimal solution for the intermediate node is to activate the second half of the Inverter and the first half of the TG. 
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        thick,
+        activebox/.style={draw=green!70!black, ultra thick, fill=green!10, rounded corners=1pt},
+        dummybox/.style={draw=red, thin},
+        arrow/.style={blue, ->, >=stealth, thick},
+        font=\sffamily
+    ]
+
+    % ==========================================
+    % ROW 1: B7, 6 (MSB - Full Width 32)
+    % ==========================================
+    \begin{scope}[yshift=0cm]
+        \draw[thick, green!50!black] (-0.2, -0.5) rectangle (8.2, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B7, 6};
+        
+        \draw[dummybox] (0,0) rectangle (4,0.5); % Inverter
+        \draw[dummybox] (4,0) rectangle (8,0.5); % TG
+        
+        \draw[arrow] (0,0.25) -- (4,0.25);
+        \draw[arrow] (4,0.25) -- (8,0.25);
+        
+        \node[text=red, font=\bfseries] at (2, -0.25) {Inverter};
+        \node[text=red, font=\bfseries] at (6, -0.25) {TG};
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.7) {32};
+    \end{scope}
+
+    % ==========================================
+    % ROW 2: B5 (Centered Active - Best for Intermediate Node)
+    % ==========================================
+    \begin{scope}[yshift=-2.8cm]
+        \draw[thick, green!50!black] (-0.2, -0.5) rectangle (8.2, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B5};
+        
+        % Inverter
+        \draw[dummybox] (0,0) rectangle (4,0.5); 
+        \filldraw[activebox] (2,-0.05) rectangle (4,0.55);
+        \draw[arrow] (2,0.25) -- (4,0.25);
+        
+        % TG
+        \draw[dummybox] (4,0) rectangle (8,0.5);
+        \filldraw[activebox] (4,-0.05) rectangle (6,0.55);
+        \draw[arrow] (4,0.25) -- (6,0.25); 
+        
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.7) {16};
+        \node[text=red, font=\bfseries, align=left, right] at (8.5, 0.25) {Active devices grouped\\at the center};
+    \end{scope}
+
+    \end{tikzpicture}
+    \caption{Optimal active finger placement to minimize the intermediate node routing capacitance.}
+    \label{fig:intermediate_node}
+\end{figure}
+
+This arrangement groups all active layout regions at the center of the footprint, minimizing the internal routing wire length. However, this creates a direct architectural conflict: the layout strategy that represents the best-case scenario for the intermediate node is the exact worst-case scenario for the external input and output scaling. The input signal must now route over the dummy Inverter fingers to reach the active devices, and the output signal must similarly traverse the dummy TG fingers to reach the common rail. This conflict dictates that the final layout cannot perfectly optimize both domains simultaneously, necessitating a careful design trade-off based on which parasitic capacitance (internal vs. external) dominates the overall driver bandwidth and return loss.
+\subsection*{Final Layout Strategy: Node Prioritization}
+Because it is physically impossible to simultaneously optimize the input, intermediate, and output nodes, a strategic trade-off is required. The decision must be driven by the electrical sensitivity of each node to parasitic capacitance. The following prioritization scheme was established for the fractional dummy insertion:
+
+\begin{enumerate}
+    \item \textbf{Input Node (Highest Priority):} Must perfectly scale to maintain the precise binary weighting of the input capacitance presented to the preceding pre-driver stage.
+    \item \textbf{Intermediate Node (High Priority):} The internal connection between the Inverter and the Transmission Gate (TG) is highly sensitive. Excess parasitic capacitance here acts as a dominant pole, severely degrading the internal slew rate and bandwidth of the driver branch.
+    \item \textbf{Output Node (Lowest Priority):} The routing capacitance at the final output node is less critical because it is positioned before the series termination resistor ($R$). The resistor effectively masks a portion of this capacitance from the main transmission line, mitigating its impact on the overall return loss compared to the internal nodes.
+\end{enumerate}
+
+Based on this prioritization, the final chosen topology activates the \textit{first half} of both the Inverter and the TG (Case 1 from the initial analysis). As illustrated in Figure~\ref{fig:final_node_priority}, this achieves the perfect $0.5\times$ scaling for the critical input node. The intermediate node routing distance scales by $0.75\times$, offering a strong compromise that preserves internal bandwidth. The output node takes the penalty with a $1.0\times$ scaling (no reduction), which is an acceptable trade-off given its lower electrical priority.
+
+Because it is physically impossible to simultaneously optimize the input, intermediate, and output nodes, a strategic trade-off is required. The decision must be driven by the electrical sensitivity of each node to parasitic capacitance. The following prioritization scheme was established for the fractional dummy insertion:
+
+\begin{enumerate}
+    \item \textbf{Input Node (Highest Priority):} Must perfectly scale to maintain the precise binary weighting of the input capacitance presented to the preceding pre-driver stage.
+    \item \textbf{Intermediate Node (High Priority):} The internal connection between the Inverter and the Transmission Gate (TG) is highly sensitive. Excess parasitic capacitance here acts as a dominant pole, severely degrading the internal slew rate and bandwidth of the driver branch.
+    \item \textbf{Output Node (Lower Priority):} The routing capacitance at the final output node is less critical because it is positioned before the series termination resistor ($R$). The resistor effectively masks a portion of this capacitance from the main transmission line, mitigating its impact on the overall return loss compared to the internal nodes.
+\end{enumerate}
+
+The final chosen topology activates the \textit{first half} of both the Inverter and the TG. As illustrated in Figure~\ref{fig:final_node_priority}, this arrangement yields the following scaling factors for the layout parasitics relative to the MSB:
+\begin{itemize}
+    \item \textbf{Input (i/p) node:} $0.5\times$
+    \item \textbf{Intermediate node:} $0.75\times$
+    \item \textbf{Output (o/p) node:} $1.0\times$
+\end{itemize}
+
+By prioritizing the input node, perfect scaling is achieved for the most sensitive capacitance. The intermediate node takes the next priority with a $0.75\times$ scaling factor, offering a strong compromise to preserve internal bandwidth. The output node takes the penalty with a $1.0\times$ scaling (no reduction). Because the output capacitance under consideration lies strictly \textit{before} the series termination resistor, this prioritization is the optimal choice; the resistor effectively shields the external transmission line from this unscaled capacitance.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        thick,
+        activebox/.style={draw=green!70!black, ultra thick, fill=green!10, rounded corners=1pt},
+        dummybox/.style={draw=red, thin},
+        arrow/.style={blue, ->, >=stealth, thick},
+        blackarrow/.style={black, ->, >=stealth, thick},
+        font=\sffamily
+    ]
+
+    % ==========================================
+    % ROW 1: B7, 6 (MSB - Full Width 32)
+    % ==========================================
+    \begin{scope}[yshift=0cm]
+        \draw[thick, green!50!black] (-0.2, -1.0) rectangle (9.5, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B7, 6};
+        
+        \draw[dummybox] (0,0) rectangle (4,0.5); % Inverter
+        \draw[dummybox] (4,0) rectangle (8,0.5); % TG
+        
+        \draw[arrow] (0,0.25) -- (4,0.25) node[midway, above=-2pt, scale=0.8] {i/p};
+        \draw[arrow] (4,0.25) -- (8,0.25) node[midway, above=-2pt, scale=0.8] {o/p};
+        \draw[blackarrow] (0,-0.15) -- (8,-0.15) node[midway, above=-2pt, scale=0.8] {\textbf{intermediate node}};
+        
+        \node[text=red, font=\bfseries] at (2, -0.6) {Inverter};
+        \node[text=red, font=\bfseries] at (6, -0.6) {TG};
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.85) {32};
+    \end{scope}
+
+    % ==========================================
+    % ROW 2: B5 (Final Choice)
+    % ==========================================
+    \begin{scope}[yshift=-3.5cm]
+        \draw[thick, green!50!black] (-0.2, -1.0) rectangle (9.5, 1.5);
+        \node[text=green!50!black, font=\Large\bfseries] at (1.5, 1) {B5};
+        
+        % Inverter
+        \draw[dummybox] (0,0) rectangle (4,0.5); 
+        \filldraw[activebox] (0,-0.05) rectangle (2,0.55);
+        \draw[arrow] (0,0.25) -- (2,0.25) node[midway, above=-2pt, scale=0.8] {i/p};
+        
+        % TG
+        \draw[dummybox] (4,0) rectangle (8,0.5);
+        \filldraw[activebox] (4,-0.05) rectangle (6,0.55);
+        \draw[arrow] (6,0.25) -- (8,0.25) node[midway, above=-2pt, scale=0.8] {o/p}; 
+        
+        % Intermediate node arrow: starts from 0, ends at 6 (75% of total width)
+        \draw[blackarrow] (0,-0.15) -- (6,-0.15) node[midway, above=-2pt, scale=0.8, text=blue] {intermediate node};
+        
+        \node[text=green!50!black, font=\large\bfseries] at (4, -0.85) {16};
+        \node[text=red, font=\bfseries, align=left, right] at (8.5, 0.25) {First is active\\second is dummy};
+    \end{scope}
+
+    \end{tikzpicture}
+    \caption{Final fractional dummy insertion strategy demonstrating the routing lengths for the prioritized nodes.}
+    \label{fig:final_node_priority}
+\end{figure}
 
 
 \subsubsection{Layout Verification}
@@ -990,4 +1250,120 @@ The post-layout results demonstrate that the transmitter maintains robust impeda
 \section{Improved Design}
 \label{sec:modulated_design}
 
-To enhance the performance of the calibration DAC, an additional branch was introduced to decrease the calibration step size. This approach provides finer control over the output impedance tuning. As shown in Figure~\ref{fig:mod_schematic}, the design utilizes a high-resistance $R_{branch}$ configuration. By implementing a s... (7 KB left)
+To enhance the performance of the calibration DAC, an additional branch was introduced to decrease the calibration step size. This approach provides finer control over the output impedance tuning. As shown in Figure~\ref{fig:mod_schematic}, the design utilizes a high-resistance $R_{branch}$ configuration. By implementing a significantly higher resistance compared to the baseline, the contribution of the MOSFETs to the overall path is minimized, effectively negating the need for additional transistor-based switching in this specific branch.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{Modulated_design_schematic.png}
+    \caption{Schematic of the modulated DAC design with an additional calibration branch.}
+    \label{fig:mod_schematic}
+\end{figure}
+
+The calibration strategy was verified through parameter interpolation across various process corners, as illustrated in Figure~\ref{fig:cal_curve}. The design demonstrates consistent behavior throughout the interpolation steps.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Callibration graph.png}
+    \caption{Parameter interpolation across process corners.}
+    \label{fig:cal_curve}
+\end{figure}
+
+The mathematical validation of the interpolation steps is confirmed by the following equations, demonstrating the target resistance of $320~\Omega$:
+
+\begin{equation}
+    (1): \frac{395 \times R_{bank} \times \frac{395}{470}}{395 + R_{bank} \times \frac{395}{470}} = 320~\Omega
+\end{equation}
+\begin{flushleft}
+    Where $R_{bank} \approx 2005~\Omega$, and $R_{branch} = 470 \times 4 \cdot R_{poly} + 125 \text{ (TG)}$.
+\end{flushleft}
+
+\begin{equation}
+    (2): \frac{545 \times (2005 \parallel 1003) \times \frac{545}{470}}{545 + (2005 \parallel 1003) \times \frac{545}{470}} = 320~\Omega
+\end{equation}
+\subsection{Swing Performance and Supply Variation Analysis}
+
+
+To ensure the effectiveness of the added calibration branch, the transmitter was evaluated under varying supply voltage conditions. The primary design objective was to match the sizing of $R_{main}$ ($395~\Omega$) to the rest of the resistor bank, ensuring that the variations across the Typical-Typical (TT) process corner—spanning min, nom, and max conditions—remain consistent.
+Notice that typical/Nominal here means this process corner (1) not TT
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Swing_Fig1.png}
+        \caption{Swing at $10\%$ supply variation.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Swing_Fig2.png}
+        \caption{Swing with $R_{main} = 432.5~\Omega$ and scaled $R_{bank}$.}
+    \end{subfigure}
+    \caption{Output swing performance analysis under supply voltage variations.}
+    \label{fig:mod_swing_results}
+\end{figure}
+
+The simulation results in Figure~\ref{fig:mod_swing_results} demonstrate the calibration range capability:
+
+\begin{itemize}
+    \item \textbf{Figure~\ref{fig:mod_swing_results}(a):} Represents the swing performance under a $10\%$ supply voltage variation with $R_{main}$ set to $395~\Omega$.
+    \item \textbf{Figure~\ref{fig:mod_swing_results}(b):} To evaluate the coverage of the calibration code, $R_{main}$ was set to $432.5~\Omega$ (the midpoint between $395~\Omega$ and $420~\Omega$) and the calibration bank resistance ($R_{bank}$) was scaled by the variation ratio. The results confirm that the design successfully covers the target range up to a supply variation of approximately $8.5\%$.
+\end{itemize}
+
+This verification confirms that the modulated design maintains sufficient tuning range to compensate for supply-induced fluctuations, validating the sizing strategy employed for the additional calibration branch.
+
+
+\subsection{PAM-4 Signaling and Linearity Analysis}
+\label{sec:pam4_analysis}
+
+The PAM-4 signaling scheme provides double the data rate of NRZ by utilizing four distinct voltage levels. To ensure signal integrity, the Ratio Level Mismatch (RLM) is characterized across nominal, maximum, and minimum process conditions. The resulting eye diagrams and corresponding RLM values are presented in Figure~\ref{fig:pam4_eyes}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{PAM4_Nominal.png}
+        \caption{this process corner corner (RLM = $98.3\%$).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{PAM4_Max.png}
+        \caption{Maximum corner (RLM = $98.87\%$).}
+    \end{subfigure}
+    
+    \vspace{0.5cm}
+    
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{PAM4_Min.png}
+        \caption{Minimum corner (RLM = $98.4\%$).}
+    \end{subfigure}
+    \caption{PAM-4 eye diagram analysis and RLM verification across process corners.}
+    \label{fig:pam4_eyes}
+\end{figure}
+
+The high RLM values observed (greater than $98\%$) confirm excellent linearity and uniform eye opening across all process corners, validating the transmitter's capability to maintain high signal quality in PAM-4 operation.
+\subsection{Return Loss and Differential Impedance Analysis}
+\label{sec:freq_analysis}
+
+To ensure optimal signal transmission and minimal reflections, the transmitter's return loss and differential impedance were characterized across the frequency spectrum. Figure~\ref{fig:return_loss_impedance} shows the simulation results for both the differential return loss ($S_{dd11}$) and the differential impedance ($R_{diff}$) for this process corner.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Return_Loss_modulated_Plot.png}
+        \caption{Differential return loss ($S_{dd11}$) vs. frequency.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Rdiff_modulated_Plot.png}
+        \caption{Differential impedance ($R_{diff}$) vs. frequency.}
+    \end{subfigure}
+    \caption{Frequency-domain analysis of transmitter return loss and differential impedance.}
+    \label{fig:return_loss_impedance}
+\end{figure}
+
+The differential return loss indicates high signal fidelity with substantial suppression of reflections across the target frequency range. Concurrently, the differential impedance profile demonstrates a stable matching characteristic, maintaining robustness against process variations within the operational bandwidth.
+
