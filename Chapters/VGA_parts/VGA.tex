@@ -1,5 +1,5 @@
 \subsection{Proposed Topology}
-Following the receiver input network, a Variable Gain Amplifier (VGA) is required to equalize the signal amplitude before it is sampled by the Decision Feedback Equalizer (DFE). The primary design objective for this block is to provide a moderate, digitally controlled gain range while consuming minimal power. Furthermore, the VGA must drive the massive parasitic input capacitance of the subsequent DFE stage without severely degrading the 16 GHz Nyquist bandwidth necessary for 64 GT/s PAM4 operation.
+Following the receiver input network and CTLE, a Variable Gain Amplifier (VGA) is required to optimize the signal amplitude before it is sampled by the Decision Feedback Equalizer (DFE). The primary design objective for this block is to provide a moderate, digitally controlled gain range while consuming minimal power. Furthermore, the VGA must drive the massive parasitic input capacitance of the subsequent DFE stage without severely degrading the 16 GHz Nyquist bandwidth necessary for 64 GT/s PAM4 operation.
 
 To achieve this, a single-stage differential common-source amplifier with digitally controlled source degeneration was selected as the base architecture. As shown in Figure \ref{fig:vga_schematic}, the proposed topology introduces three critical architectural enhancements over standard source-degenerated amplifiers: inductive shunt peaking, a 1-bit load calibration branch, and a 3-bit binary-weighted current DAC for robust PVT compensation.
 
@@ -247,7 +247,7 @@ This compression behavior directly correlates with the Total Harmonic Distortion
 \subsubsection*{PVT Corner Analysis}
 A rigorous corner analysis was performed for every discrete gain step (1 dB, 2.5 dB, 4 dB, 5.5 dB, and 7 dB) to validate the effectiveness of the calibration networks. A total of 12 corners were simulated for each state, encompassing process variations (Slow-Slow and Fast-Fast), supply voltage fluctuations ($\pm 5\%$ VDD), and extreme temperature variations ($-40^\circ\text{C}$ to $125^\circ\text{C}$). 
 
-By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the tail current via the 3-bit $I_{DAC}$, the VGA was able to maintain its target gain profile, bandwidth, and common-mode voltage across all severe PVT shifts.
+By engaging the 1-bit $R_1$ load calibration in the SS corners and trimming the tail current via the 3-bit $I_{DAC}$, the VGA was able to maintain its target gain profile, bandwidth, and common-mode voltage across all severe PVT shifts with minimum variations.
 
 \begin{figure}[H]
     \centering
@@ -355,7 +355,7 @@ To validate the robustness of the physical design, Post-Layout Extraction (PEX) 
 To capture the true analog front-end characteristics, the entire chain—from the input network to the VGA output—was simulated as a unified block.
 
 \subsubsection*{Chain Noise}
-The input-referred and output noise profiles were evaluated at the maximum VGA and CTLE configuration (7 dB, -15dB respectively). This represents the worst-case noise scenario, as all degeneration branches are open, maximizing the thermal noise contribution of the source resistors. The integrated noise up to the 16 GHz operating bandwidth is documented in Table \ref{tab:chain_noise}.
+The noise profile was evaluated at the maximum VGA and CTLE configuration (7 dB, and -15 dB respectively). This represents the worst-case noise scenario, as all degeneration branches are open, maximizing the thermal noise contribution of the source resistors. The integrated noise up to the 16 GHz operating bandwidth is documented in Table \ref{tab:chain_noise}.
 
 \begin{figure}[H]
     \centering
@@ -374,6 +374,7 @@ The input-referred and output noise profiles were evaluated at the maximum VGA a
         \midrule
         Integration Bandwidth & 1 Hz to 16.0 GHz \\ 
         Total Integrated Noise (RMS) & 1.514 mVrms \\ 
+        Total Integrated VGA Noise (RMS) & 0.542 mVrms \\
         \bottomrule
     \end{tabular}
 \end{table}
