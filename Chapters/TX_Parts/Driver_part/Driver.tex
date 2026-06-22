@@ -11,16 +11,29 @@ The fundamental building block of the entire driver array is this unit slice. As
     \label{fig:unit_slice}
 \end{figure}
 
-A critical design parameter within this unit slice is the internal impedance distribution. To meet PCIe Gen 6.0 specifications, the transmitter provides a nominal $50~\Omega$ single-ended termination. This $50~\Omega$ target is partitioned such that the ratio between the series poly resistor ($R_{series}$) and the transistor ON-resistance ($R_{on}$) is approximately 80\% and 20\%, respectively. 
+A critical design parameter within this unit slice is the internal impedance distribution. 
+To meet PCIe Gen 6.0 specifications, the transmitter provides a nominal $50~\Omega$ single-ended termination. 
+This $50~\Omega$ target is partitioned such that the ratio between the series poly resistor ($R_{series}$) and 
+the transistor ON-resistance ($R_{on}$) is approximately 80\% and 20\%, respectively. 
 
-By forcing the passive resistor (${\sim}40~\Omega$) to dominate the total output impedance, the variations of the transistor's $R_{on}$ (${\sim}10~\Omega$) across different output voltage swings are attenuated. This 80/20 ratio is sized and preserved across all manufacturing process corners, forming the baseline for the driver's Signal-to-Distortion Ratio (SDR). and Ratio level mismatch (RLM)
+By forcing the passive resistor (${\sim}40~\Omega$) to dominate the total output impedance, 
+the variations of the transistor's $R_{on}$ (${\sim}10~\Omega$) across different output voltage swings are attenuated. 
+This 80/20 ratio is sized and preserved across all manufacturing process corners, 
+forming the baseline for the driver's Signal-to-Distortion Ratio (SDR). and Ratio level mismatch (RLM)
 
-To ensure the transmitter maintains the required impedance characteristics across all manufacturing process corners, a digital calibration scheme is employed. The design utilizes transmission gates (TGs) as switches to manage the impedance network, effectively reducing parasitic loading compared to conventional topologies.
+To ensure the transmitter maintains the required impedance characteristics across all manufacturing process corners, 
+a digital calibration scheme is employed. The design utilizes transmission gates (TGs) as switches to manage the impedance network, 
+to maintain VGS=VDD whatever the i/p
 
 \subsection{Calibration Architecture}
-As shown in Figure~\ref{fig:calibration_schematic}, the driver employs a parallel branch architecture to provide an additional degree of freedom for the input pair. The design philosophy centers on ensuring that the series resistance ($R_{series}$) is intentionally sized to be larger than the target resistance ($R_{desired}$). This approach ensures that at the Fast-Fast (FF) process corner, the effective impedance remains close to $R_{desired}$ without requiring the opening of calibration banks. 
+As shown in Figure~\ref{fig:calibration_schematic}, the driver employs a parallel branch architecture to provide 
+an additional degree of freedom for the input pair. The design philosophy centers on ensuring that the series resistance ($R_{series}$) 
+is intentionally sized to be larger than the target resistance ($R_{desired}$). This approach ensures that at the Fast-Fast (FF) process corner, 
+the effective impedance remains close to $R_{desired}$ without requiring the opening of calibration banks. 
 
-By guaranteeing specific sizing for the polysilicon resistors ($R_{poly}$), we achieve uniform incremental steps across process variations. Specifically, at the Typical-Typical (TT) corner, a single calibration step is sufficient to achieve $R_{desired}$, whereas at the Slow-Slow (SS) corner, two branches of the calibration DAC are activated to compensate for the higher resistance.
+By guaranteeing specific sizing for the polysilicon resistors ($R_{poly}$), we achieve uniform incremental steps across process variations. 
+Specifically, at the Typical-Typical (TT) corner, a single calibration step is sufficient to achieve $R_{desired}$, 
+whereas at the Slow-Slow (SS) corner, two branches of the calibration DAC are activated to compensate for the higher resistance.
 
 \begin{figure}[H]
     \centering
@@ -535,7 +548,9 @@ Furthermore, the differential return loss ($S_{dd11}$) and common-mode return lo
 
 \newpage
 \subsection{Single bit Response (SBR) Analysis}
-To characterize the transmitter's impulse response and analyze the Total Harmonic Distortion (THD), a single pulse was applied to the differential inputs, $V_{inP}$ and $V_{inN}$. This characterization provides the essential data to determine the cursor ratios relative to the main cursor.
+To characterize the transmitter's impulse response and analyze the Total Harmonic Distortion (THD), 
+a single pulse was applied to the differential inputs, $V_{inP}$ and $V_{inN}$. This characterization provides 
+the essential data to determine the cursor ratios relative to the main cursor.
 
 \begin{figure}[H]
     \centering
@@ -563,7 +578,8 @@ To characterize the transmitter's impulse response and analyze the Total Harmoni
     \label{fig:spr_analysis}
 \end{figure}
 
-The cursor values, normalized after DC shift ($+440.465\text{ mV}$), are summarized in Table~\ref{tab:spr_cursors}. Based on this analysis, the worst-case cursor configuration is identified as $00000000001\textcolor{red}{1}00$.
+The cursor values, normalized after DC shift ($+440.465\text{ mV}$), are summarized in Table~\ref{tab:spr_cursors}. 
+Based on this analysis, the worst-case cursor configuration is identified as $00000000001\textcolor{red}{1}00$.
 
 \begin{table}[H]
     \centering
@@ -592,39 +608,51 @@ The cursor values, normalized after DC shift ($+440.465\text{ mV}$), are summari
     \end{tabular}
 \end{table}
 \subsection{Signal-to-ISI Ratio (SIR) Analysis}
-The transmitter's immunity to Inter-Symbol Interference (ISI) is quantified by the Signal-to-ISI Ratio (SIR), also referred to as $SNR_{ISI}$. Using the cursor values extracted from the single pulse response, the SIR is calculated using the following relationship:
+The transmitter's immunity to Inter-Symbol Interference (ISI) is quantified by the Signal-to-ISI Ratio (SIR), 
+also referred to as $SNR_{ISI}$. Using the cursor values extracted from the single pulse response, 
+the SIR is calculated using the following relationship:
 
 \begin{equation}
     SIR = \frac{\sqrt{V_{2}^{2} + V_{3}^{2} + V_{4}^{2} + \dots}}{V_{1}}
 \end{equation}
 
-Where $V_{1}$ represents the main cursor and $V_{n}$ corresponds to the various pre- and post-cursor values. Based on the cursor analysis and the sum of the signed squares (calculated as $-2535.768$), the resulting Signal-to-ISI ratio for the transmitter is determined to be $5.445\%$.
+Where $V_{1}$ represents the main cursor and $V_{n}$ corresponds to the various pre- and post-cursor values. 
+Based on the cursor analysis and the sum of the signed squares (calculated as $-2535.768$), 
+the resulting Signal-to-ISI ratio for the transmitter is determined to be $5.445\%$.
 
 \subsection{Signal-to-Distortion Ratio (SDR) Measurement Methodology}
 \label{sec:sdr_methodology}
 
-To isolate and quantify the non-linear distortion of the TX DAC, a comparative measurement methodology is employed. This technique differentiates between signal degradation caused by bandwidth limitations (inter-symbol interference) and non-linearities arising from transistor compression.
+To isolate and quantify the non-linear distortion of the TX DAC, a comparative measurement methodology is employed. 
+This technique differentiates between signal degradation caused by bandwidth limitations (inter-symbol interference) 
+and non-linearities arising from transistor compression.
 
 The measurement process involves the parallel evaluation of two systems driven by an identical Pseudo-Random Binary Sequence (PRBS) input:
 
 \begin{enumerate}
-    \item \textbf{Cadence Transient Output ($V_{CAD}$):} This represents the actual non-linear transmitter response. It inherently includes both the bandwidth-limited ISI effects and the non-linear distortions resulting from the transmitter's circuitry.
-    \item \textbf{Ideal MATLAB Output ($V_{MAT}$):} This is generated by convolving the input PRBS sequence with the extracted Single Pulse Response (SPR) of the system:
+    \item \textbf{Cadence Transient Output ($V_{CAD}$):} This represents the actual non-linear transmitter response. 
+    It inherently includes both the bandwidth-limited ISI effects and the non-linear distortions resulting from the transmitter's circuitry.
+    \item \textbf{Ideal MATLAB Output ($V_{MAT}$):} This is generated by convolving the input PRBS sequence with the 
+    extracted Single Pulse Response (SPR) of the system:
     \begin{equation}
         V_{MAT}(t) = \sum_{n} I[n] \cdot h(t - nT)
     \end{equation}
-    where $I[n]$ is the PRBS input sequence and $h(t)$ is the system's pulse response. As convolution is a linear operation, this reference output captures the bandwidth limitations (ISI) of the channel while remaining perfectly linear.
+    where $I[n]$ is the PRBS input sequence and $h(t)$ is the system's pulse response. As convolution is a linear operation, 
+    this reference output captures the bandwidth limitations (ISI) of the channel while remaining perfectly linear.
 \end{enumerate}
 
-By subtracting the ideal linear response from the actual transient output, the linear ISI components cancel out, isolating the pure non-linear distortion error ($\epsilon_{NL}$):
+By subtracting the ideal linear response from the actual transient output, the linear ISI components cancel out, 
+isolating the pure non-linear distortion error ($\epsilon_{NL}$):
 
 \begin{equation}
     \epsilon_{NL}(t) = V_{CAD}(t) - V_{MAT}(t)
 \end{equation}
 
-This error signal, $\epsilon_{NL}(t)$, allows for the calculation of the wideband Signal-to-Distortion Ratio (SDR), providing a direct metric for the transmitter's non-linear performance.
+This error signal, $\epsilon_{NL}(t)$, allows for the calculation of the wideband Signal-to-Distortion Ratio (SDR), 
+providing a direct metric for the transmitter's non-linear performance.
 
-To quantify the non-linear performance of the transmitter, the Signal-to-Distortion Ratio (SDR) is measured by comparing the Cadence transient simulation against an ideal linear model generated in MATLAB. 
+To quantify the non-linear performance of the transmitter, the Signal-to-Distortion Ratio (SDR) is measured by comparing 
+the Cadence transient simulation against an ideal linear model generated in MATLAB. 
 
 \begin{figure}[H]
     \centering
@@ -645,7 +673,9 @@ To quantify the non-linear performance of the transmitter, the Signal-to-Distort
     \caption{SSmax SDR}
     \label{fig:sdrs_driver}
 \end{figure}
-To further validate this methodology, a simplified RC-equivalent circuit model of the driver was constructed as shown in Figure~\ref{fig:sbr_tb}. By comparing the Single-Bit Response (SBR) of the full transistor-level circuit with this RC-model, we verify the fidelity of the model used to extract the Single Bit Response (SBR) for the linear reference.
+To further validate this methodology, a simplified RC-equivalent circuit model of the driver was constructed as shown in Figure~\ref{fig:sbr_tb}. 
+By comparing the Single-Bit Response (SBR) of the full transistor-level circuit with this RC-model, we verify the fidelity of the model used to 
+extract the Single Bit Response (SBR) for the linear reference.
 
 \begin{figure}[H]
     \centering
@@ -661,7 +691,8 @@ To further validate this methodology, a simplified RC-equivalent circuit model o
     \label{fig:sbr_match}
 \end{figure}
 
-The close match between the transistor-level SBR and the RC-model confirms that the linear reference effectively captures the bandwidth-limiting characteristics of the system, allowing for an accurate isolation of non-linear distortion.
+The close match between the transistor-level SBR and the RC-model confirms that the linear reference effectively captures the 
+bandwidth-limiting characteristics of the system, allowing for an accurate isolation of non-linear distortion.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{img/TX_img/SDR_ideal.png}
@@ -669,17 +700,24 @@ The close match between the transistor-level SBR and the RC-model confirms that 
     \label{fig:sdr_ideal}
 \end{figure}
 
-The SDR measurement of the RC-model, presented in Figure~\ref{fig:sdr_ideal}, yields an SDR of $50~\text{dB}$, which serves as a baseline for the idealized linear behavior. This confirms that the residual error observed in the full driver-level simulation is indeed representative of the device non-linearities rather than inaccuracies in the behavioral model.
+The SDR measurement of the RC-model, presented in Figure~\ref{fig:sdr_ideal}, yields an SDR of $50~\text{dB}$, 
+which serves as a baseline for the idealized linear behavior. This confirms that the residual error observed in the full driver-level simulation 
+is indeed representative of the device non-linearities rather than inaccuracies in the behavioral model.
 
 
 
 \subsection{AC Common-Mode Peak-to-Peak (AC CM PP) Analysis}
 
-The transmitter common-mode voltage ($V_{CM} = (V_{D+} + V_{D-})/2$) is ideally constant in a balanced differential system. In practice, however, AC common-mode noise is generated primarily by physical imperfections during signal transitions:
+The transmitter common-mode voltage ($V_{CM} = (V_{D+} + V_{D-})/2$) is ideally constant in a balanced differential system. 
+In practice, however, AC common-mode noise is generated primarily by physical imperfections during signal transitions:
 
 \begin{enumerate}
-    \item \textbf{Slew Rate Mismatch:} Asymmetry between the pull-up and pull-down network transition speeds causes instantaneous current imbalances. As illustrated in Figure~\ref{fig:ac_cm_causes}, this generates high-frequency ``shark-fin'' spikes in the common-mode voltage at every bit transition.
-    \item \textbf{Amplitude Mismatch:} Discrepancies in the single-ended output swings lead to a lower-frequency, persistent common-mode square wave. This offset effectively modulates the average common-mode level at the data rate, resulting in a distinct ripple.
+    \item \textbf{Slew Rate Mismatch:} Asymmetry between the pull-up and pull-down network transition speeds causes 
+    instantaneous current imbalances. As illustrated in Figure~\ref{fig:ac_cm_causes}, 
+    this generates high-frequency ``shark-fin'' spikes in the common-mode voltage at every bit transition.
+    \item \textbf{Amplitude Mismatch:} Discrepancies in the single-ended output swings lead to a lower-frequency, 
+    persistent common-mode square wave. This offset effectively modulates the average common-mode level at the data rate, 
+    resulting in a distinct ripple.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -736,12 +774,16 @@ The transmitter is verified against PCIe Gen 6.0 common-mode limits:
     \end{tabular}
 \end{table}
 
-The simulation results confirm that the transmitter maintains significant margin against the PCIe Gen 6.0 specification masks across all corners. The SF corner exhibits the most robust common-mode rejection, likely due to a self-compensating impedance balance between the PMOS and NMOS networks under asymmetric process skew.
+The simulation results confirm that the transmitter maintains significant margin against the PCIe Gen 6.0 specification masks across all corners. 
+The SF corner exhibits the most robust common-mode rejection, likely due to a self-compensating impedance balance between the PMOS and NMOS networks 
+under asymmetric process skew.
 
 \section{Layout Implementation}
 \label{sec:layout}
 
-This section details the physical implementation of the transmitter, focusing on the layout strategies employed to minimize parasitics and ensure signal integrity. The design follows a hierarchical approach, starting from fundamental gates and scaling up to the unit slice and final MSB driver array.
+This section details the physical implementation of the transmitter, focusing on the layout strategies employed to minimize parasitics 
+and ensure signal integrity. The design follows a hierarchical approach, starting from fundamental gates and scaling up to the unit slice 
+and final MSB driver array.
 
 \subsection{Fundamental Gate Layouts}
 The driver implementation relies on optimized layouts for the basic building blocks, ensuring symmetric matching and reduced interconnect parasitics. 
@@ -776,7 +818,8 @@ The driver implementation relies on optimized layouts for the basic building blo
 \end{figure}
 
 \subsection{MSB Driver Layout First Iteration}
-The MSB driver section utilizes a custom layout to manage the capacitive loading of the intermediate nodes. We first define the Single-Ended (SE) unit slice as the primary reference, followed by the complete MSB block.
+The MSB driver section utilizes a custom layout to manage the capacitive loading of the intermediate nodes. 
+We first define the Single-Ended (SE) unit slice as the primary reference, followed by the complete MSB block.
 
 \begin{figure}[H]
     \centering
@@ -796,7 +839,9 @@ The MSB driver section utilizes a custom layout to manage the capacitive loading
 \end{figure}
 
 \subsection{Parasitic Verification Results}
-To validate the layout, we performed post-layout extraction (PEX) while selectively including parasitic RC components. Figure~\ref{fig:parasitic_results} illustrates the impact of excluding specific nodes (intermediate node, $V_{DD}$, $GND$, and $O/P$ pad) on the output voltage swing.
+To validate the layout, we performed post-layout extraction (PEX) while selectively including parasitic RC components. 
+Figure~\ref{fig:parasitic_results} illustrates the impact of excluding specific nodes (intermediate node, $V_{DD}$, $GND$, and $O/P$ pad) 
+on the output voltage swing.
 
 \begin{figure}[H]
     \centering
@@ -833,7 +878,9 @@ To validate the layout, we performed post-layout extraction (PEX) while selectiv
 \subsection{Layout Refinement and Parasitic Reduction}
 \label{sec:layout_refinement}
 
-To further optimize the driver performance, the layout was modified to minimize series resistance. This was achieved by increasing the via density and transitioning critical signal routing to higher metal layers with lower resistivity. The effectiveness of these modifications is verified by comparing the unit slice and MSB array layouts, followed by post-layout swing analysis.
+To further optimize the driver performance, the layout was modified to minimize series resistance. 
+This was achieved by increasing the via density and transitioning critical signal routing to higher metal layers with lower resistivity. 
+The effectiveness of these modifications is verified by comparing the unit slice and MSB array layouts, followed by post-layout swing analysis.
 
 \begin{figure}[H]
     \centering
@@ -853,7 +900,8 @@ To further optimize the driver performance, the layout was modified to minimize 
 \end{figure}
 
 
-Post-layout simulation of the modified driver indicates an improved output swing of $426~\text{mV}$, as shown in Figure~\ref{fig:swing_426}. The sensitivity analysis of parasitic node exclusion demonstrates significant improvements in performance after these layout optimizations:
+Post-layout simulation of the modified driver indicates an improved output swing of $426~\text{mV}$, as shown in Figure~\ref{fig:swing_426}. 
+The sensitivity analysis of parasitic node exclusion demonstrates significant improvements in performance after these layout optimizations:
 
 \begin{figure}[H]
     \centering
@@ -873,7 +921,8 @@ Post-layout simulation of the modified driver indicates an improved output swing
 \subsection{Full DAC Layout Integration and Verification}
 \label{sec:full_layout}
 
-The final physical integration of the design involves the assembly of the full DAC array, followed by the incorporation of the peaking inductors. Verification is performed using standard EDA tools to ensure physical and logical correctness.
+The final physical integration of the design involves the assembly of the full DAC array, followed by the incorporation of the peaking inductors. 
+Verification is performed using standard EDA tools to ensure physical and logical correctness.
 
 
     \begin{figure}[H]
@@ -887,18 +936,37 @@ The final physical integration of the design involves the assembly of the full D
         \includegraphics[width=0.9\textwidth]{Full_DAC_wz_inductor_Layout.png}
         \caption{DAC with integrated peaking inductors.}
     \end{figure}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{LAYOUT_AREA.png}
+        \caption{Layout_Area.}
+    \end{figure}
+
+    \begin{itemize}
+    \item Area without inductor = $70~\mu\text{m} \times 60~\mu\text{m} = 4200~\mu\text{m}^2$
+    \item Area with inductor = $240~\mu\text{m} \times 122.5~\mu\text{m} = 29,400~\mu\text{m}^2$
+    \end{itemize}
   
 \subsection{Parasitic Scaling and Fractional Dummy Insertion}
-To maintain strict binary weighting across the DAC branches, the routing parasitics must scale proportionally with the transistor widths. For the Most Significant Bits (MSBs, e.g., B7 and B6), the full active width (32 units) is utilized for both the Inverter and the Transmission Gate (TG). However, for the lower bits (e.g., B5), the required active width is halved (16 units). 
+To maintain strict binary weighting across the DAC branches, the routing parasitics must scale proportionally with the transistor widths. 
+For the Most Significant Bits (MSBs, e.g., B7 and B6), the full active width (32 units) is utilized for both the Inverter and the Transmission Gate (TG). 
+However, for the lower bits (e.g., B5), the required active width is halved (16 units). 
 
-Simply shrinking the layout footprint would disrupt the pitch and create severe Layout Dependent Effect (LDE) mismatches. Instead, the lower bits maintain the identical physical footprint of the MSBs, but half of the transistor fingers are deactivated to serve as dummy devices. 
+Simply shrinking the layout footprint would disrupt the pitch and create severe Layout Dependent Effect (LDE) mismatches. Instead, 
+the lower bits maintain the identical physical footprint of the MSBs, but half of the transistor fingers are deactivated to serve as dummy devices. 
 
-The placement of these active fingers is critical to ensure the input ($i/p$) and output ($o/p$) routing parasitics scale linearly. Three primary placement topologies were considered, as illustrated in Figure~\ref{fig:dummy_insertion}:
+The placement of these active fingers is critical to ensure the input ($i/p$) and output ($o/p$) routing parasitics scale linearly. 
+Three primary placement topologies were considered, as illustrated in Figure~\ref{fig:dummy_insertion}:
 
 \begin{enumerate}
-    \item \textbf{Case 1 (Left-Aligned):} The first half of both devices is active. While this minimizes the input routing length, the output signal must traverse the entire dummy section of the TG to reach the common output bus, destroying the parasitic scaling ratio.
-    \item \textbf{Case 2 (Right-Aligned):} The second half is active. This minimizes the output routing, but forces the input signal to route over the dummy inverter fingers, creating an analogous parasitic imbalance at the input node.
-    \item \textbf{Case 3 (Edge-Aligned / Optimal):} The active fingers are pushed to the extreme outer edges—the first half of the Inverter and the second half of the TG are active. This perfectly scales both the input and output routing lengths by a factor of two, perfectly matching the 16-unit electrical width while isolating the active devices from internal cross-coupling.
+    \item \textbf{Case 1 (Left-Aligned):} The first half of both devices is active. While this minimizes the input routing length, 
+    the output signal must traverse the entire dummy section of the TG to reach the common output bus, destroying the parasitic scaling ratio.
+    \item \textbf{Case 2 (Right-Aligned):} The second half is active. This minimizes the output routing, 
+    but forces the input signal to route over the dummy inverter fingers, creating an analogous parasitic imbalance at the input node.
+    \item \textbf{Case 3 (Edge-Aligned / Optimal):} The active fingers are pushed to the extreme outer edges—the first half of the Inverter 
+    and the second half of the TG are active. This perfectly scales both the input and output routing lengths by a factor of two, perfectly 
+    matching the 16-unit electrical width while isolating the active devices from internal cross-coupling.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -1145,7 +1213,8 @@ By prioritizing the input node, perfect scaling is achieved for the most sensiti
 
 
 \subsubsection{Layout Verification}
-To ensure the integrity of the design, rigorous design rule checking (DRC) and layout-versus-schematic (LVS) verification were performed using Siemens EDA tools. The results in Figure~\ref{fig:verification_results} confirm a clean, error-free layout ready for fabrication.
+To ensure the integrity of the design, rigorous design rule checking (DRC) and layout-versus-schematic (LVS) verification were 
+performed using Siemens EDA tools. The results in Figure~\ref{fig:verification_results} confirm a clean, error-free layout ready for fabrication.
 
 % --- DRC Results ---
 \begin{figure}[H]
@@ -1173,21 +1242,17 @@ To ensure the integrity of the design, rigorous design rule checking (DRC) and l
     \label{fig:lvs_results}
 \end{figure}
 
-% --- RVE Results ---
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1.1\textwidth]{RVE}
-    \caption{Calibre RVE verification status.}
-    \label{fig:rve_results}
-\end{figure}
 
-The verification reports confirm that all design rules, including antenna and density requirements, have been met. The LVS check matches the extracted layout to the design schematic, ensuring logical equivalence for high-speed operation.
+The verification reports confirm that all design rules, including antenna and density requirements, have been met. 
+The LVS check matches the extracted layout to the design schematic, ensuring logical equivalence for high-speed operation.
 
 \section{Post Layout Simultion}
 \subsection{Post-Layout Swing Specification Verification}
 \label{sec:post_layout_swing}
 
-Following the physical implementation and parasitic extraction, the output voltage swing was re-verified to ensure that the design maintains compliance with the specified $0.8~\text{V}$ to $1.0~\text{V}$ (differential) range. This post-layout simulation accounts for the parasitic resistance and capacitance introduced by the routing and via stacks.
+Following the physical implementation and parasitic extraction, the output voltage swing was re-verified to ensure that 
+the design maintains compliance with the specified $0.8~\text{V}$ to $1.0~\text{V}$ (differential) range. 
+This post-layout simulation accounts for the parasitic resistance and capacitance introduced by the routing and via stacks.
 
 \begin{figure}[H]
     \centering
@@ -1196,11 +1261,15 @@ Following the physical implementation and parasitic extraction, the output volta
     \label{fig:swing_post_layout}
 \end{figure}
 
-The post-layout results demonstrate that the driver maintains a consistent differential swing across all process corners. The analysis confirms that the impact of layout parasitics has been successfully minimized, preserving the signal integrity and voltage levels established in the pre-layout design phase. The design remains robust against PVT variations, meeting all target output swing specifications required for reliable operation.
+The post-layout results demonstrate that the driver maintains a consistent differential swing across all process corners. 
+The analysis confirms that the impact of layout parasitics has been successfully minimized, preserving the signal integrity and 
+voltage levels established in the pre-layout design phase. The design remains robust against PVT variations, 
+meeting all target output swing specifications required for reliable operation.
 \subsection{Post-Layout PAM-4 Eye Diagram Analysis}
 \label{sec:pam4_post_layout}
 
-The PAM-4 eye diagrams were simulated post-layout to verify signal integrity under realistic parasitic conditions. The linearity, quantified by the Ratio Level Mismatch (RLM), demonstrates that the design maintains excellent eye symmetry.
+The PAM-4 eye diagrams were simulated post-layout to verify signal integrity under realistic parasitic conditions. The linearity, 
+quantified by the Ratio Level Mismatch (RLM), demonstrates that the design maintains excellent eye symmetry.
 
 \begin{figure}[H]
     \centering
@@ -1219,12 +1288,15 @@ The PAM-4 eye diagrams were simulated post-layout to verify signal integrity und
     \label{fig:pam4_post_layout}
 \end{figure}
 
-The RLM values of $96.8\%$ and $95.5\%$ for the nominal and SS-Max corners, respectively, confirm that the modulated design successfully minimizes level mismatch, ensuring high-quality multilevel signaling even under process variations.
+The RLM values of $96.8\%$ and $95.5\%$ for the nominal and SS-Max corners, respectively, confirm that the modulated design successfully 
+minimizes level mismatch, ensuring high-quality multilevel signaling even under process variations.
 
 \subsection{Post-Layout Return Loss Analysis}
 \label{sec:post_layout_rl}
 
-The physical layout parasitics, including interconnect routing and via resistances, significantly impact the impedance matching of the transmitter. To verify the performance of the modulated design post-layout, both differential return loss ($S_{dd11}$) and common-mode return loss ($S_{11CM}$) were simulated across various process corners (Nominal, SS-Max, and FF-Min).
+The physical layout parasitics, including interconnect routing and via resistances, significantly impact the impedance matching of the transmitter. 
+To verify the performance of the modulated design post-layout, both differential return loss ($S_{dd11}$) and common-mode return loss ($S_{11CM}$) 
+were simulated across various process corners (Nominal, SS-Max, and FF-Min).
 
 \begin{figure}[H]
     \centering
@@ -1240,17 +1312,27 @@ The physical layout parasitics, including interconnect routing and via resistanc
     \label{fig:post_layout_s11cm}
 \end{figure}
 
-The post-layout results demonstrate that the transmitter maintains robust impedance matching across the operating bandwidth. The differential return loss remains well-contained, and the common-mode suppression validates the effectiveness of the layout strategy in maintaining signal integrity and minimizing undesired reflections despite the introduced parasitic elements.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Rdiff_Post_Layout.png}
+    \caption{O/P impedance}
+   
+\end{figure}
 
-
-
+The post-layout results demonstrate that the transmitter maintains robust impedance matching across the operating bandwidth. 
+The differential return loss remains well-contained, and the common-mode suppression validates the effectiveness of the layout strategy 
+in maintaining signal integrity and minimizing undesired reflections despite the introduced parasitic elements.
 
 
 \newpage
 \section{Improved Design}
 \label{sec:modulated_design}
 
-To enhance the performance of the calibration DAC, an additional branch was introduced to decrease the calibration step size. This approach provides finer control over the output impedance tuning. As shown in Figure~\ref{fig:mod_schematic}, the design utilizes a high-resistance $R_{branch}$ configuration. By implementing a significantly higher resistance compared to the baseline, the contribution of the MOSFETs to the overall path is minimized, effectively negating the need for additional transistor-based switching in this specific branch.
+To enhance the performance of the calibration DAC, an additional branch was introduced to decrease the calibration step size. 
+This approach provides finer control over the output impedance tuning. As shown in Figure~\ref{fig:mod_schematic}, 
+the design utilizes a high-resistance $R_{branch}$ configuration. By implementing a significantly higher resistance compared to the baseline, 
+the contribution of the MOSFETs to the overall path is minimized, effectively negating the need for additional transistor-based switching 
+in this specific branch.
 
 \begin{figure}[H]
     \centering
@@ -1259,7 +1341,8 @@ To enhance the performance of the calibration DAC, an additional branch was intr
     \label{fig:mod_schematic}
 \end{figure}
 
-The calibration strategy was verified through parameter interpolation across various process corners, as illustrated in Figure~\ref{fig:cal_curve}. The design demonstrates consistent behavior throughout the interpolation steps.
+The calibration strategy was verified through parameter interpolation across various process corners, as illustrated in Figure~\ref{fig:cal_curve}. 
+The design demonstrates consistent behavior throughout the interpolation steps.
 
 \begin{figure}[H]
     \centering
@@ -1283,7 +1366,9 @@ The mathematical validation of the interpolation steps is confirmed by the follo
 \subsection{Swing Performance and Supply Variation Analysis}
 
 
-To ensure the effectiveness of the added calibration branch, the transmitter was evaluated under varying supply voltage conditions. The primary design objective was to match the sizing of $R_{main}$ ($395~\Omega$) to the rest of the resistor bank, ensuring that the variations across the Typical-Typical (TT) process corner—spanning min, nom, and max conditions—remain consistent.
+To ensure the effectiveness of the added calibration branch, the transmitter was evaluated under varying supply voltage conditions. 
+The primary design objective was to match the sizing of $R_{main}$ ($395~\Omega$) to the rest of the resistor bank, 
+ensuring that the variations across the Typical-Typical (TT) process corner—spanning min, nom, and max conditions—remain consistent.
 Notice that typical/Nominal here means this process corner (1) not TT
 \begin{figure}[H]
     \centering
@@ -1305,17 +1390,22 @@ Notice that typical/Nominal here means this process corner (1) not TT
 The simulation results in Figure~\ref{fig:mod_swing_results} demonstrate the calibration range capability:
 
 \begin{itemize}
-    \item \textbf{Figure~\ref{fig:mod_swing_results}(a):} Represents the swing performance under a $10\%$ supply voltage variation with $R_{main}$ set to $395~\Omega$.
-    \item \textbf{Figure~\ref{fig:mod_swing_results}(b):} To evaluate the coverage of the calibration code, $R_{main}$ was set to $432.5~\Omega$ (the midpoint between $395~\Omega$ and $420~\Omega$) and the calibration bank resistance ($R_{bank}$) was scaled by the variation ratio. The results confirm that the design successfully covers the target range up to a supply variation of approximately $8.5\%$.
+    \item \textbf{Figure~\ref{fig:mod_swing_results}(a):} Represents the swing performance under a $10\%$ supply voltage variation with $R_{main}$ 
+    set to $395~\Omega$.
+    \item \textbf{Figure~\ref{fig:mod_swing_results}(b):} To evaluate the coverage of the calibration code, $R_{main}$ was set to 
+    $432.5~\Omega$ (the midpoint between $395~\Omega$ and $420~\Omega$) and the calibration bank resistance ($R_{bank}$) was scaled by the variation ratio. The results confirm that the design successfully covers the target range up to a supply variation of approximately $8.5\%$.
 \end{itemize}
 
-This verification confirms that the modulated design maintains sufficient tuning range to compensate for supply-induced fluctuations, validating the sizing strategy employed for the additional calibration branch.
+This verification confirms that the modulated design maintains sufficient tuning range to compensate for supply-induced fluctuations, 
+validating the sizing strategy employed for the additional calibration branch.
 
 
 \subsection{PAM-4 Signaling and Linearity Analysis}
 \label{sec:pam4_analysis}
 
-The PAM-4 signaling scheme provides double the data rate of NRZ by utilizing four distinct voltage levels. To ensure signal integrity, the Ratio Level Mismatch (RLM) is characterized across nominal, maximum, and minimum process conditions. The resulting eye diagrams and corresponding RLM values are presented in Figure~\ref{fig:pam4_eyes}.
+The PAM-4 signaling scheme provides double the data rate of NRZ by utilizing four distinct voltage levels. 
+To ensure signal integrity, the Ratio Level Mismatch (RLM) is characterized across nominal, maximum, and minimum process conditions. 
+The resulting eye diagrams and corresponding RLM values are presented in Figure~\ref{fig:pam4_eyes}.
 
 \begin{figure}[H]
     \centering
@@ -1342,11 +1432,14 @@ The PAM-4 signaling scheme provides double the data rate of NRZ by utilizing fou
     \label{fig:pam4_eyes}
 \end{figure}
 
-The high RLM values observed (greater than $98\%$) confirm excellent linearity and uniform eye opening across all process corners, validating the transmitter's capability to maintain high signal quality in PAM-4 operation.
+The high RLM values observed (greater than $98\%$) confirm excellent linearity and uniform eye opening across all process corners, 
+validating the transmitter's capability to maintain high signal quality in PAM-4 operation.
 \subsection{Return Loss and Differential Impedance Analysis}
 \label{sec:freq_analysis}
 
-To ensure optimal signal transmission and minimal reflections, the transmitter's return loss and differential impedance were characterized across the frequency spectrum. Figure~\ref{fig:return_loss_impedance} shows the simulation results for both the differential return loss ($S_{dd11}$) and the differential impedance ($R_{diff}$) for this process corner.
+To ensure optimal signal transmission and minimal reflections, the transmitter's return loss and differential impedance were characterized 
+across the frequency spectrum. Figure~\ref{fig:return_loss_impedance} shows the simulation results for both the differential return loss ($S_{dd11}$) 
+and the differential impedance ($R_{diff}$) for this process corner.
 
 \begin{figure}[H]
     \centering
@@ -1365,5 +1458,7 @@ To ensure optimal signal transmission and minimal reflections, the transmitter's
     \label{fig:return_loss_impedance}
 \end{figure}
 
-The differential return loss indicates high signal fidelity with substantial suppression of reflections across the target frequency range. Concurrently, the differential impedance profile demonstrates a stable matching characteristic, maintaining robustness against process variations within the operational bandwidth.
+The differential return loss indicates high signal fidelity with substantial suppression of reflections across the target frequency range. 
+Concurrently, the differential impedance profile demonstrates a stable matching characteristic, 
+maintaining robustness against process variations within the operational bandwidth.
 

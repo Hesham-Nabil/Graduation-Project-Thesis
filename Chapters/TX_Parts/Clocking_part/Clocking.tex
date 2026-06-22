@@ -50,7 +50,7 @@ The fundamental building block of the IQ divider is the differential static latc
     
     \item \textbf{Storage Element:} A cross-coupled inverter pair (regenerative latch) is utilized to maintain the logic state when the input stage enters a high-impedance (tri-state) mode.
     
-    \item \textbf{Operation:} When the clock is active, the tri-state inverter is enabled, and the latch transparently passes the input to the output. When the clock toggles, the input stage disconnects, and the cross-coupled structure holds the previous value, providing robust static operation and immunity to leakage.
+    \item \textbf{Operation:} When the clock is low, the tri-state inverter is enabled, and the latch transparently passes the input to the output. When the clock toggles, the input stage disconnects, and the cross-coupled structure holds the previous value, providing robust static operation and immunity to leakage.
 \end{itemize}
 
 \begin{figure}[H]
@@ -70,8 +70,8 @@ The complete IQ divider is formed by cascading two of the previously described l
     
     \item \textbf{Quadrature Phase Generation:} 
     \begin{itemize}
-        \item The Master Latch triggers on the rising edge of the clock.
-        \item The Slave Latch triggers on the falling edge of the clock.
+        \item The Master Latch triggers on the falling edge of the clock.
+        \item The Slave Latch triggers on the rising edge of the clock.
         \item This $180^\circ$ difference in the high-speed clock domain results in a precise $90^\circ$ phase shift at the divided output frequency, producing the $I$ and $Q$ phases ($0^\circ, 90^\circ, 180^\circ, 270^\circ$).
     \end{itemize}
     
@@ -110,7 +110,11 @@ The transient simulation results verify the functional operation of the IQ divid
 While the clocked $C^2$MOS topology provides robust static operation, the initial transient simulation revealed a severe startup vulnerability. Because the cross-coupled inverters in the master and slave latches are geometrically symmetrical, the divider is susceptible to metastability during power-up.
 
 \begin{itemize}
-    \item \textbf{The Metastability Problem:} If the internal nodes power up at or near the common-mode voltage (approximately 400 mV), the loop gain of the cross-coupled pair is perfectly balanced. As shown in the initial transient response, the circuit lingers in a metastable, mid-rail state for nearly 200 ns before thermal noise or minor asymmetric leakage finally pushes the latches into a valid logic state. In a multi-gigahertz transceiver system, this indeterminate startup delay could be unacceptable and can lead to severe synchronization failures downstream.
+    \item \textbf{The Metastability Problem:} If the internal nodes power up at or near the common-mode voltage (approximately 400 mV), 
+    the loop gain of the cross-coupled pair is perfectly balanced. As shown in the initial transient response, 
+    the circuit lingers in a metastable, mid-rail state for nearly 200 ps before thermal noise or minor asymmetric leakage finally 
+    pushes the latches into a valid logic state. In a multi-gigahertz transceiver system, this indeterminate startup delay could 
+    be unacceptable and can lead to severe synchronization failures downstream.
 \end{itemize}
 
 \begin{figure}[H]
