@@ -271,59 +271,32 @@ summarised in Tables~\ref{tab:tcoil_dims} and~\ref{tab:achieved_values} respecti
 
 \subsubsection{DCI Performance Across Corners}
 
-The DCI robustness was verified across the full set of process and temperature corners.
-As shown in Table~\ref{tab:vcm_corners}, the complementary PMOS/NMOS architecture
-inherently compensates for process drift: when the PMOS resistors increase (slow corner),
-the NMOS resistors increase by a similar factor, leaving their ratio — and therefore
-$V_{CM}$ — nearly unchanged. The total $V_{CM}$ variation across all simulated corners
-remains below $1\,\text{mV}$.
-The 4-bit tuning array maintains the return loss below the $-10\,\text{dB}$ specification
-across all corners, as shown in Figure~\ref{fig:dci_s11_corners}.
+The robustness of the DCI performance was evaluated across extreme process and temperature corners. As summarized in Table~\ref{tab:vcm_corners}, the output common-mode voltage ($V_{CM}$) exhibits exceptional stability. Thanks to the calibration framework, the total $V_{CM}$ deviation is tightly constrained to within $\pm 1\,\text{mV}$ of the nominal target across all simulated conditions. Furthermore, the 4-bit tuning array successfully regulates the input impedance, maintaining the nominal $50\,\Omega$ termination with a maximum worst-case variation of less than $4\,\Omega$.
 
 \begin{table}[H]
     \centering
-    \caption{Common-mode voltage $V_{CM}$ stability across process and temperature corners}
+    \caption{Common-mode voltage ($V_{CM}$) and termination stability across PVT corners}
     \label{tab:vcm_corners}
     \begin{tabular}{@{}lccccc@{}}
         \toprule
-        \textbf{Parameter} & \textbf{Nominal} &
-        \textbf{SS, $125^\circ$C} & \textbf{SS, $-40^\circ$C} &
-        \textbf{FF, $125^\circ$C} & \textbf{FF, $-40^\circ$C} \\
+        \textbf{Parameter} & \textbf{Nominal} & \textbf{SS, $125^\circ$C} & \textbf{SS, $-40^\circ$C} & \textbf{FF, $125^\circ$C} & \textbf{FF, $-40^\circ$C} \\
         \midrule
         $V_{CM}$ (mV) & 540.9 & 541.5 & 540.7 & 540.3 & 541.4 \\
+        $R_{Term}$ ($\Omega$) & 49.87 & 53.56 & 52.11 & 50.58 & 49.86 \\
         \bottomrule
     \end{tabular}
 \end{table}
-
-\begin{figure}[H]
-    \centering
-    \framebox{\includegraphics[width=0.95\textwidth]{img/Termination_VGA_img/dci_s11.pdf}}
-    \caption{DCI return loss $S_{11}$ across SS and FF process corners at
-             $-40^\circ$C and $125^\circ$C.}
-    \label{fig:dci_s11_corners}
-\end{figure}
-
-\newpage
 
 % -------------------------------------------------------
 \subsubsection{Complete Input Network Testbench}
 % -------------------------------------------------------
  
-The full top-level simulation was performed using the differential testbench shown in
-Figure~\ref{fig:full_tb}. The testbench is structured as follows.
- 
-Two identical single-ended (SE) Input Network instances are arranged differentially,
-each containing the post-layout extracted T-coil, the parasitic capacitances
-($C_{pad} = 50\,\text{fF}$, $C_{ESD} = 60\,\text{fF}$, $C_{in} = 35\,\text{fF}$),
-and the DCI termination network. 
+The full top-level simulation was conducted using the differential testbench illustrated in Figure~\ref{fig:full_tb}. The architecture consists of two identical single-ended input network instances configured differentially. Each half-circuit integrates the fully extracted post-layout T-coil, the DCI termination network, and lumped models representing the front-end parasitic capacitances ($C_{pad} = 50\,\text{fF}$, $C_{ESD} = 60\,\text{fF}$, and $C_{in} = 35\,\text{fF}$).
 
-A single port (PORT0) with a $100\,\Omega$ source impedance drives the differential pair through an ideal balun. 
+In accordance with PCI-SIG specifications, a $265\,\text{nF}$ AC coupling capacitor ($C_c$) is placed in series with the input port. Its impedance is negligible at high frequencies ($|Z_{C_c}| < 1\,\text{m}\Omega$ at $1\,\text{GHz}$), ensuring it does not affect the AC response. Its primary purpose is to provide required DC isolation by blocking the $540\,\text{mV}$ DCI common-mode bias from reaching the $50\,\Omega$ measurement port.
 
-In series with PORT0, a $265\,\text{nF}$ AC coupling capacitor ($C_c$) is inserted, as mandated by the PCIe~sig specification. At all frequencies of interest its impedance is negligible ($|Z_{Cc}| < 1\,\text{m}\Omega$ at 1~GHz), so it has no effect on the AC response. Its purpose is to block the DCI common-mode bias voltage ($V_{CM} = 540\,\text{mV}$) from reaching the measurement port, replicating the DC isolation that exists between the channel and the test equipment in a real compliance measurement.
- 
-The DCI control interface is driven by a Verilog-A behavioural decoder block
-(\texttt{DCIctrl}), which translates a single parametric DC voltage into the 4-bit UP$\langle$3:0$\rangle$ and DN$\langle$3:0$\rangle$ binary code. 
- 
+The DCI digital interface is driven by a custom Verilog-A behavioral decoder (\texttt{DCIctrl}). This block translates a single parametric DC voltage into the 4-bit binary control code (UP$\langle$3:0$\rangle$ and DN$\langle$3:0$\rangle$) required to tune the termination matrix.
+
 \begin{figure}[H]
     \centering
     \framebox{\includegraphics[width=0.95\textwidth]{img/Termination_VGA_img/testbenchinput.pdf}}
@@ -332,7 +305,7 @@ The DCI control interface is driven by a Verilog-A behavioural decoder block
 \end{figure}
 
 \subsubsection{Overall Input Network Performance}
-The final simulation integrates the fully extracted T-coil, the calibrated DCI network, and all parasitic loads at the top level. As shown in Figure \ref{fig:overall_perf}, the input network maintains a differential return loss ($S_{11}$) below $-10\text{ dB}$ up to 35 GHz. Furthermore, the real input impedance ($R_{in}$) remains tightly bounded between $40\Omega$ and $60\Omega$ up to 25 GHz.
+As illustrated in Figure~\ref{fig:overall_perf}, the input network exhibits broadband matching performance that significantly exceeds the PCI-SIG compliance mask. The standard dictates a differential return loss ($S_{11}$) strictly below $-10\,\text{dB}$ up to $1.25\,\text{GHz}$, relaxing to $-8\,\text{dB}$ up to $16\,\text{GHz}$. In contrast, the proposed design effortlessly maintains an $S_{11}$ below $-10\,\text{dB}$ across an extended bandwidth up to $35\,\text{GHz}$. Furthermore, the real input impedance ($R_{in}$) remains tightly bounded between $40\,\Omega$ and $60\,\Omega$ up to $25\,\text{GHz}$, ensuring robust signal integrity.
 
 % --- Overall performance: stacked 2x1 ---
 \begin{figure}[H]
