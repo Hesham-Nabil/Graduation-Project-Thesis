@@ -1,37 +1,31 @@
-% $Log: abstract.tex,v $
-% Revision 1.1  93/05/14  14:56:25  starflt
-% Initial revision
-% 
-% Revision 1.1  90/05/04  10:41:01  lwvanels
-% Initial revision
-% 
-
-\cleardoublepage
-\newpage
+\newpage    
 \thispagestyle{empty}
 \phantomsection
 \addtotoc{Abstract}
 
 \begin{center}\huge \textbf{Abstract}\end{center}
 
-The exponential growth in data demand for high-performance computing, cloud datacenters, 
-and graphics processing units (GPUs) necessitates robust high-speed serial interconnects. 
-This project presents the design and implementation of a comprehensive PCI Express (PCIe) Gen 6.0 Serializer/Deserializer (SerDes) Physical Layer (PHY) Transceiver, 
-operating at 64 GT/s. As PCIe standards transition from Non-Return-to-Zero (NRZ) to Pulse Amplitude Modulation 4-level (PAM4) signaling, 
-managing severe frequency-dependent channel attenuation, severe crosstalk, and stringent linearity requirements presents profound signal integrity 
-challenges across the full physical link.
+This thesis presents the full-custom design and implementation of a PCI Express (PCIe)
+Gen~6.0 Serializer/Deserializer (SerDes) Physical Layer (PHY) Transceiver operating at
+64~GT/s in GlobalFoundries 22\,nm FD-SOI (GF22FDX) technology. The transition from
+NRZ to PAM4 signaling introduces profound signal integrity challenges, including
+$\sim$26\,dB channel insertion loss at Nyquist, severe inter-symbol interference (ISI),
+and stringent linearity requirements across all PVT corners.
 
-To achieve reliable high-speed data transmission, this thesis details both the transmitter (TX) and receiver (RX) architectural paths. 
-On the transmit side, emphasis is placed on high-bandwidth serialization and precise multi-tap feed-forward equalization (FFE) to pre-shape the pulse 
-and mitigate precursor distortion before injecting signals into the high-loss backplane channel.
+On the transmit side, a quadrature clocking architecture with IQ frequency divider and
+25\% duty-cycle pulse-shaper minimizes clock distribution jitter. A 4:1 C\textsuperscript{2}MOS
+multiplexer achieves a post-layout eye width of 30.35\,ps under worst-case (SF/125\textdegree{}C)
+conditions and 155.29\,fs deterministic jitter at the typical corner, well within the
+625\,fs PCIe Gen~6.0 budget. The line driver employs a segmented 32\,GBaud Voltage-Mode
+SST DAC with peaking inductors, delivering $>$800\,mV differential swing at 10.22\,mW
+(PAM4, typical corner), with a multi-tap FFE cancelling precursor ISI.
 
-On the receive path, a high-performance Analog Front-End (AFE) is implemented to reconstruct the degraded PAM4 eye diagram. This work covers 
-the optimization of wideband termination networks utilizing bandwidth extension techniques, such as T-coils and bridged-shunt peaking, 
-alongside highly linear Variable Gain Amplifiers (VGAs) configured to maximize dynamic range. 
-
-Central to the receiver's equalization strategy, a multi-stage Continuous-Time Linear Equalizer (CTLE) is custom-designed using source degeneration and 
-active topologies to provide wideband programmable high-frequency peaking, counteracting linear inter-symbol interference (ISI) with minimal latency and 
-power consumption. To handle post-cursor ISI without introducing noise amplification, a high-speed Decision Feedback Equalizer (DFE) is integrated following 
-the AFE block. The DFE architecture leverages predictive or look-ahead techniques to overcome critical loop-latency constraints inherent to 64 GT/s processing. 
-The entire transceiver PHY is evaluated across process, voltage, and temperature (PVT) corners to ensure robust eye opening, low bit-error rates (BER), and full 
-compliance with the rigorous PCIe Gen6 specifications.
+On the receive side, T-coil and bridged-shunt peaking networks extend AFE bandwidth
+while preserving impedance matching. A source-degenerated VGA maximizes dynamic range,
+followed by a multi-stage CTLE realizing a 6-pole, 3-zero response with up to 19\,dB
+programmable peaking to counteract channel loss. A half-rate look-ahead DFE---comprising
+an Azita strong-ARM comparator, C\textsuperscript{2}MOS latches, G\textsubscript{m}
+cells, and an analog dLev calibration loop---cancels post-cursor ISI, achieving
+60--66\,mV eye height and 2.88\,mV\textsubscript{rms} integrated noise over a
+26.5\,dB FR4 channel. The complete PHY is validated across 45 PVT corners, confirming
+compliance with PCIe Gen~6.0 electrical specifications.
